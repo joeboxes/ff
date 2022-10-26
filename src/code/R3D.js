@@ -1393,7 +1393,7 @@ R3D._testMatchViewGeometry3D = function(){
 	var K_s = 0.0;
 	var K = new Matrix(3,3).fromArray([K_fx, K_s, K_cx,  0, K_fy, K_cy,  0,0,1]);
 	var imageSize = new V2D(400,300);
-	console.log("K: \n"+K+"");
+	// console.log("K: \n"+K+"");
 
 	var projectFxn = function(point3D, extrinsic, K){
 		var distortion = null;
@@ -1494,6 +1494,8 @@ R3D._testMatchViewGeometry3D = function(){
 	}
 	console.log(pairs);
 
+console.log("checkpoint E");
+
 	// put cameras in slightly off orientations
 	// var error3DCameraSigma = 0.0;
 	// var error3DCameraSigma = 0.1;
@@ -1508,13 +1510,15 @@ R3D._testMatchViewGeometry3D = function(){
 			0*(Math.random()-0.5)*error3DCameraSigma,
 			(Math.random()-0.5)*error3DCameraSigma);
 		// keep best for now
-		if(i!=2){
+		// if(true){
+		if(i!=2){ // 0 & 1 keep perfect alignments
 		// if(false){
 			extError = ext.copy();
 		}
 		camera["extError"] = extError;
 	}
 
+console.log("checkpoint G");
 
 	// estimate all P3D locations with error in absolute location:
 	for(var i=0; i<pairs.length; ++i){
@@ -1607,6 +1611,15 @@ var pointsFrom2D = [];
 		// if any shared points in image C correspond to 3D points in 'good' pair then try to match
 	}
 	// SHOW THE VECTOR OF C -> DESIRED C
+
+
+
+// ESTIMATE OF TRANSFORM TO MOVE POINTS FROM TO POINTS TO
+// transformCorrection3D
+
+
+console.log("checkpoint K");
+
 // console.log(pointsFrom);
 // console.log(pointsTo);
 	var transformCorrection3D = R3D.averageTransformEuclidean3D(pointsFrom,pointsTo);
@@ -1617,7 +1630,9 @@ var debugDirection = transformCorrection3D.multV3DtoV3D(V3D.ZERO);
 // console.log("D:\n"+debugDirection);
 // center-center offset
 // plane of rotation
-// 
+
+
+console.log("checkpoint N");
 
 // update ALL 3D points for C
 
@@ -1665,6 +1680,7 @@ var debugDirection = transformCorrection3D.multV3DtoV3D(V3D.ZERO);
 	// 3^3 = 27
 	// 6^3 = 216
 	
+console.log("improve on initial C matrix");
 
 	// var maxIterations = 10000;
 	// var maxIterations = 1000;
@@ -1675,7 +1691,7 @@ var debugDirection = transformCorrection3D.multV3DtoV3D(V3D.ZERO);
 	console.log(result);
 	cameraC["extEstimated"] = result["P"];
 
-
+console.log("checkpoint R");
 
 /*
 	var listP = [];
@@ -1768,8 +1784,10 @@ var debugDirection = transformCorrection3D.multV3DtoV3D(V3D.ZERO);
 
 
 
-
+console.log("checkpoint T");
 	
+
+console.log("original: red\n?: grn\n?: blu\n")
 
 	// display original cameras & points
 	var currX = 0;
@@ -1949,7 +1967,7 @@ var debugDirection = transformCorrection3D.multV3DtoV3D(V3D.ZERO);
 	}
 
 
-
+console.log("checkpoint W");
 
 
 	// estimate initial absolute orientation for view P matrixes
@@ -59316,6 +59334,9 @@ R3D._gd_BAPointExtrinsic = function(args, x, isUpdate){
 
 
 
+R3D.FiniteElementCameraGeometricDistance = function(K, Kinv, P, points3D, points2D, maxSubdivisions, distanceXYZ, angleXYZ){
+	throw "?"
+}
 
 
 
@@ -59339,9 +59360,19 @@ ranges.push([-angleXYZ,angleXYZ]);
 ranges.push([-angleXYZ,angleXYZ]);
 
 	// var result = Code.gradientDescent(R3D._gd_SingleCameraExtrinsic, args, x, null, maxIterations, 1E-10);
-	var minimumDifference = 1E-10;
-	var minimumRangeDifference = 1E-10;
-	var result = Code.discreteSubdivision(R3D._gd_SingleCameraExtrinsic, args, x, ranges, maxSubdivisions, minimumDifference, minimumRangeDifference);
+	// var minimumDifference = 1E-10;
+	// var minimumRangeDifference = 1E-10;
+
+	// var result = Code.discreteSubdivision(R3D._gd_SingleCameraExtrinsic, args, x, ranges, maxSubdivisions, minimumDifference, minimumRangeDifference);
+	// var result = Code.discreteSubdivision(R3D._gd_SingleCameraExtrinsic, args, x, ranges, [2,2,2, 2,2,2]);
+	//var result = Code.discreteSubdivision(R3D._gd_SingleCameraExtrinsic, args, x, ranges, [3,3,3, 3,3,3]);
+console.log("distanceXYZ: "+distanceXYZ);
+var radiuses = [distanceXYZ,distanceXYZ,distanceXYZ, angleXYZ,angleXYZ,angleXYZ];
+var epsilons = [1E-10,1E-10,1E-10, 1E-6,1E-6,1E-6];
+var result = Code.optimizerBinarySearch(R3D._gd_SingleCameraExtrinsic, args, x, radiuses, 10, epsilons, 1E-12);
+// console.log(result);
+// throw "..."
+
 	// Code.discreteSubdivision = function(fxn, args, x, ranges, iter, diff, epsilon){
 	var x = result["x"];
 	var cost = result["cost"];
@@ -59395,9 +59426,14 @@ R3D._gd_SingleCameraExtrinsic = function(args, x, isUpdate){
 			// console.log(i+": "+Math.sqrt(distanceSquare)+" - "+p3D+" & "+p2D+" -- "+K.toArray()+" ? "+P.toArray()+" ...");
 		}
 	}
-	if(isUpdate){
-		console.log(totalError/pointCount);
-	}
+	totalError /= pointCount;
+	// if(isUpdate){
+	// 	console.log(totalError/pointCount);
+	// }
+	// console.log(args);
+	// console.log(x);
+	// console.log("TOTAL ERROR: "+totalError);
+	// throw "..."
 	return totalError;
 }
 

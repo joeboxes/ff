@@ -3320,8 +3320,66 @@ Code.optimizerSimplex = function(fxn, args, x, ix, iter, diff, epsilon){ // Neld
 // Powell’s Method
 
 
-Code.optimizerBinarySearch = function(fxn, args, x, ranges, iter, diff, epsilon){
-	// 
+/*
+N-dimensional range w/ midpoint check
+recursively choose best sub-range
+*/
+Code.optimizerBinarySearch = function(fxn, args, x, magnitudeX, maxIterations, minEpsilonsX,          maxDiffPercent,maxDiffResult){
+console.log("optimizerBinarySearch");
+
+
+// TODO: keep track of 'distance' from target & only reduce based on which variables are moving the most/least
+
+
+// Code.discreteSubdivision = function(fxn, args, x, ranges, maxSubdivisions, minimumErrorDiff, minimumRangeEpsilon){
+	var maxDiffPercent = 1.00000001;
+	// var binaryDecay = 0.75;
+	var binaryDecay = 0.50;
+	var variableCount = x.length;
+	var subdivisions = [];
+	var ranges = [];
+	var bestCost = null;
+	var bestX = x;
+	for(var i=0; i<variableCount; ++i){
+		subdivisions[i] = [2];
+		ranges[i] = [ -magnitudeX[i], magnitudeX[i] ];
+	}
+	for(var i=0; i<maxIterations; ++i){
+		var result = Code.discreteSubdivision(fxn, args, bestX, ranges, subdivisions);
+		console.log("ITERATION: "+i+"/ "+maxIterations+" : "+currentCost);
+		var currentCost = result["cost"];
+		var currentX = result["x"];
+
+		if(bestCost!==null){
+			var ratio = currentCost/bestCost;
+		}
+		if(bestCost===null || currentCost<bestCost){
+			bestCost = currentCost;
+			bestX = currentX;
+		}
+		if(bestCost!==null){
+			console.log("ratio: "+ratio);
+			if(ratio<maxDiffPercent){
+				console.log("low");
+			}
+		}
+
+// console.log(currentX+"");
+// console.log(currentX+"");
+
+		for(var j=0; j<variableCount; ++j){
+			ranges[j][0] = ranges[j][0]*binaryDecay;
+			ranges[j][1] = ranges[j][1]*binaryDecay;
+		}
+
+	}
+	
+
+	// throw "Code.optimizerBinarySearch";
+	return {"x":bestX, "cost":bestCost};
+	// use Code.discreteSubdivision
+	// subdivisions are all 2
+	// ranges halve each time
 }
 /*
 dx = initial values of the x delta
@@ -3331,25 +3389,69 @@ epsilon = if dx is not defined is the scale of the delta to evalutate
 lambda = initial scale of gradient to use for next iteration
 */
 
-Code.discreteSubdivision = function(fxn, args, ranges, maxSubdivisions, minimumErrorDiff, minimumRangeEpsilon){
-	// var x = null;
+/*
+N-dimensional grid & try all iterations
+*/
+// Code.discreteSubdivision = function(fxn, args, x, ranges, maxSubdivisions, minimumErrorDiff, minimumRangeEpsilon){
+Code.discreteSubdivision = function(fxn, args, x, ranges, subdivisions){
+	var variableCount = x.length;
 	var cost = null;
-	var x = [];
-	for(var i=0; i<ranges.length; ++i){
+	var increments = [];
+	var currentIndex = [];
+	var val = [];
+	var totalIterations = 1;
+	for(var i=0; i<variableCount; ++i){
 		var range = ranges[i];
 		var min = range[0];
 		var max = range[1];
-		x[i] = 0;
+		increments[i] = (max-min)/subdivisions[i];
+		currentIndex[i] = 0;
+		val[i] = 0;
+		totalIterations = totalIterations * (subdivisions[i]+1);
 	}
-	for(var iteration=0; iteration>maxSubdivisions; ++i){
-		var bestCost = null;
-		var bestX = null;
-		for(var i=0; i<ranges.length; ++i){
-			var val
+	// console.log("totalIterations: "+totalIterations);
+	var bestCost = null;
+	var bestX = null;
+	var index = 0;
+	// each x permutation
+	for(var c=0; c<10000; ++c){//var i=0; i<variableCount; ++i){
+		// get x
+		for(var k=0; k<variableCount; ++k){
+			// console.log(x[k],increments[k],currentIndex[k]);
+			val[k] = x[k] + increments[k]*currentIndex[k];
+		}
+		// get y
+		var cost = fxn(args, val);
+		// console.log(c+": "+val+" = "+cost);
+		// save best
+		if(bestX==null || cost<bestCost){
+			if(bestX==null){
+				bestX = [];
+			}
+			bestCost = cost;
+			for(var k=0; k<variableCount; ++k){
+				bestX[k] = val[k];
+			}
+		}
+		var foundEnd = false;
+		currentIndex[0]++;
+		for(var k=0; k<variableCount; ++k){
+			if(currentIndex[k]>subdivisions[k]){
+				currentIndex[k] = 0;
+				if(k+1<variableCount){
+					currentIndex[k+1] += 1;
+				}else{
+					foundEnd = true;
+				}
+			}
+		}
+		if(foundEnd){
+			break;
 		}
 	}
-	throw "discreteSubdivision ..."
-	return {"x":x, "cost":cost};
+	// console.log(bestCost, bestX);
+	// throw "discreteSubdivision ..."
+	return {"x":bestX, "cost":bestCost};
 }
 
 

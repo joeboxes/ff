@@ -7740,8 +7740,6 @@ console.log("checkPerformNextTask");
 	this._taskBusy = true;
 	var i, j, k, len;
 	console.log("next task?");
-
-
 // R3D._testOptimizeGeometryEuclidean();
 
 // R3D._testOptimizeGeometryProjection2D();
