@@ -94,4 +94,96 @@ REPEAT
 
 
 
+
+# Alignment Algorithms
+
+
+- global all-at once
+- single iteritive progression
+
+
+## Align point geometry 'surfaces' points
+
+- Steps:
+	- get overall vector/rotation (transform) between point sets: AB, AC, AB
+	- move points in AC & AB toward AB to minimize difference
+- Positives:
+	- 
+- Negatives:
+	- recalcuate camera locations
+
+
+
+## Align point geometry 'surfaces' via camera orientation update
+
+- Steps:
+	- 
+- Positives:
+	- 
+- Negatives:
+	- 
+
+
+
+
+## Align camera w/ 3D reprojection error
+
+- Steps:
+	- 
+- Positives:
+	- 
+- Negatives:
+	- local minimum prevents movement to optimum?
+
+
+
+
+## .
+
+- Steps:
+	- 
+- Positives:
+	- 
+- Negatives:
+	- 
+
+
+
+
+## .
+
+- Steps:
+	- 
+- Positives:
+	- 
+- Negatives:
+	- 
+
+
+
+
+
+
+## .
+
+- Steps:
+	- 
+- Positives:
+	- 
+- Negatives:
+	- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ...

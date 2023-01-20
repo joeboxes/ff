@@ -656,6 +656,84 @@ but sit li
 
 
 
+https://www.youtube.com/watch?v=Vlf4Pkd9h48
+
+Thiên Duyên Tiền Định
+
+
+
+
+Đầu năm hoa lá xôn xao nở như đón chào
+Nhờ anh tiên đoán năm nay duyên nợ thế nào
+Phận nghèo chẳng dám ước cao
+Chỉ cần tình nghĩa với nhau
+Nếu ai tâm đầu ngỏ lời là nên giai ngẫu
+
+Mười hai con giáp em đây cầm tinh quý mùi
+Cầm tay anh đoán năm nay duyên lành đến rồi
+Gặp chồng hiền đức dễ thương
+Tuổi này vượng số lắm con
+Muốn cho vuông tròn nhờ anh môi giới mối mai đưa tình
+
+Người ấy quê quán nơi nào giàu nghèo
+Tuổi tác bao lớn sang hèn thế nào ?
+
+Anh ta tuổi chừng hai mươi mấy
+Quen lắm nhìn sơ em biết ngay
+chẳng ai xa lạ chàng ấy chính là anh, là anh đây !
+
+Tài năng tiên đoán như anh thật khôn quá trời
+Tình duyên đưa tới em ơi duyên định sẵn rồi
+
+(Song ca: )
+Giàu tiền ngày cưới sẽ vui
+Nghèo thì đại khái thế thôi
+Thế gian ai cười
+Đầu năm lo cưới, cuối năm thêm người
+
+
+
+
+At the beginning of the year, flowers and leaves bloom as welcome
+Thank you for predicting how fateful this year will be
+The poor don't dare to wish high
+Just love each other
+If anyone has a heart to say, they should be married
+
+The twelve animals of the zodiac here hold the precious scent
+Hold my hand and guess that this year will be auspicious
+Meet my lovely husband
+This age is very prosperous
+Want to make it round and round, ask a matchmaking broker to give you love
+
+Where is he from, rich and poor?
+How old is the cowardice?
+
+He's about twenty years old
+It's so familiar, I know it right away
+No one knows that the guy is you, it's you!
+
+Your talent for prediction is so smart
+Love brought me, fate is already predetermined
+
+(Duet: )
+Rich in money, the wedding day will be happy
+Poverty is roughly like that
+Who laughs in the world?
+Getting married at the beginning of the year, adding people at the end of the year
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

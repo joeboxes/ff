@@ -30,6 +30,21 @@ sudo apachectl -k restart
 
 
 
+
+
+/usr/local/etc/httpd/httpd.conf
+ServerRoot "/usr/local/opt/httpd"
+
+# LoadModule php_module /usr/local/opt/php@8.1/lib/httpd/modules/libphp.so
+
+/usr/local/var/www/repos 
+
+http://localhost/repos/ff/src/php/hello.php
+
+sudo apachectl -k restart
+
+
+
 */
 
 echo "HELLO";

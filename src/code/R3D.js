@@ -1691,7 +1691,19 @@ console.log("improve on initial C matrix");
 	console.log(result);
 	cameraC["extEstimated"] = result["P"];
 
-console.log("checkpoint R");
+
+console.log("checkpoint R 1");
+
+	// throw "optimize point / geometric distances"
+
+	var maxSubDivisions = 10;
+	var sizeTranslate = 1.0;
+	//var sizeRotate = Code.radians(5.0);
+	var result = R3D.FiniteElementCameraGeometricDistance(cameraC["Kimage"], Matrix.inverse(cameraC["Kimage"]), cameraC["extError"], points3DNew, points2DNew, maxSubDivisions, sizeTranslate, sizeRotate);
+	console.log(result);
+
+
+console.log("checkpoint R 2");
 
 /*
 	var listP = [];
@@ -59335,6 +59347,10 @@ R3D._gd_BAPointExtrinsic = function(args, x, isUpdate){
 
 
 R3D.FiniteElementCameraGeometricDistance = function(K, Kinv, P, points3D, points2D, maxSubdivisions, distanceXYZ, angleXYZ){
+
+//
+
+
 	throw "?"
 }
 

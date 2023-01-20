@@ -82,11 +82,42 @@ if(Callback != null){
 
 
 
+## PATTERNS
 
 
+http://gameprogrammingpatterns.com/contents.html
 
 
+- Command: operation as an object w/ callback - in a queue/stack
+- Flyweight: pointers to commonly used non-varying data, only unique changing data in high-level object
+- Observer: event, notification, dispatch, that can be listened for - passed via interface implementing object
+- Prototype: like an interface to a generator method that can make "clones" ... prototype languages
+- Singleton
+- State
 
+
+- Double Buffer
+- Game Loop
+- Update Method
+
+
+- Bytecode
+- Subclass Sandbox
+- Type Object
+
+
+- Component
+- Event Queue
+- Service Locator
+
+
+- Data Locality
+- Dirty Flag
+- Object Pool
+- Spatial Partition
+
+
+pool
 
 
 

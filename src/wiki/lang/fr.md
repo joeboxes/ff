@@ -12,6 +12,7 @@
 |  |  |  |
 | salut | sah-lou | hi |
 | bonjour | bon-jour | hello |
+| bonsoir |  | good evening |
 | au revoir | or ggrevah | bye |
 | s'il vous plaît | see vu play | please |
 | merci | mer-see | thank you |
@@ -19,9 +20,9 @@
 |  |  |  |
 |  |  |  |
 |  |  |  |
+| et toi | eht twah | and you |
 |  |  |  |
-|  |  |  |
-|  |  |  |
+| très bien | treh bee-ehn | very well |
 |  |  |  |
 |  |  |  |
 | grand | growh | big |
@@ -33,8 +34,28 @@
 |  |  |  |
 |  |  |  |
 |  |  |  |
+| l'homme |  | man |
+| le garçon |  | boy |
 |  |  |  |
-
+| la femme |  | woman |
+| la fille |  | girl |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
 | fr | pr | en |
 | --- | --- | --- |
 | zéro | serro | 0 |
@@ -77,24 +98,21 @@
 |  |  |  |
 |  |  |  |
 |  |  |  |
-|  |  |  |
-|  |  |  |
+| je/suis |  | I,me / am |
+| tu/es |  | you / are |
 |  |  |  |
 |  |  |  |
 |  |  |  |
 | et |  | and |
+| un/una |  | a(m)/a(f) |
 |  |  |  |
 |  |  |  |
 |  |  |  |
 |  |  |  |
 |  |  |  |
-|  |  |  |
+| le chian |  | dog |
 | le chat |  | cat |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-| l'homme |  | man |
-| le garçon |  | boy |
+| le  cheval |  | horse |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -121,6 +139,26 @@
 |  |  |  |
 |  |  |  |
 |  |  |  |
+| une / la pizza |  | pizza |
+| une / l'orange |  | orange |
+| un / le croissant |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+| Comment ça va ? |  | how are you doing |
+|  |  |  |
+| Ça va |  | I am fine |
+|  |  |  |
+| Ça va bien|  | I am doing well |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -134,15 +172,7 @@
 |  |  |  |
 |  |  |  |
 |  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
+| ?manges |  | eat |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -155,9 +185,7 @@
 |  |  |  |
 
 
-
-
-
+Je suis - I am
 
 
 

@@ -3346,7 +3346,7 @@ console.log("optimizerBinarySearch");
 	}
 	for(var i=0; i<maxIterations; ++i){
 		var result = Code.discreteSubdivision(fxn, args, bestX, ranges, subdivisions);
-		console.log("ITERATION: "+i+"/ "+maxIterations+" : "+currentCost);
+		// console.log("ITERATION: "+i+"/ "+maxIterations+" : "+currentCost);
 		var currentCost = result["cost"];
 		var currentX = result["x"];
 
@@ -3360,7 +3360,7 @@ console.log("optimizerBinarySearch");
 		if(bestCost!==null){
 			console.log("ratio: "+ratio);
 			if(ratio<maxDiffPercent){
-				console.log("low");
+				// console.log("low");
 			}
 		}
 
