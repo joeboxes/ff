@@ -1692,8 +1692,14 @@ console.log("improve on initial C matrix");
 	cameraC["extEstimated"] = result["P"];
 
 
-console.log("checkpoint R 1");
 
+
+
+var result = R3D.Plot3DCameraError(cameraC["Kimage"], Matrix.inverse(cameraC["Kimage"]), cameraC["extError"], points3DNew, points2DNew, maxSubDivisions, sizeTranslate, sizeRotate);
+console.log(result);
+
+console.log("checkpoint R 1");
+//*
 	// throw "optimize point / geometric distances"
 
 	var maxSubDivisions = 10;
@@ -1702,7 +1708,7 @@ console.log("checkpoint R 1");
 	var result = R3D.FiniteElementCameraGeometricDistance(cameraC["Kimage"], Matrix.inverse(cameraC["Kimage"]), cameraC["extError"], points3DNew, points2DNew, maxSubDivisions, sizeTranslate, sizeRotate);
 	console.log(result);
 
-
+//*/
 console.log("checkpoint R 2");
 
 /*

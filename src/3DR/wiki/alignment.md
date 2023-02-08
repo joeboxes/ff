@@ -108,28 +108,44 @@ REPEAT
 	- get overall vector/rotation (transform) between point sets: AB, AC, AB
 	- move points in AC & AB toward AB to minimize difference
 - Positives:
-	- 
+	- surfaces alignment
 - Negatives:
 	- recalcuate camera locations
-
+		-> lose all nonlinear adjustments
+	- which points are "correct"?
+		- hold some points/camera as constant, only move other cameras?
+		- use a 50/50 average?
+		- use reprojection error as weights?
+QUESTIONS:
+	- can a 'linear' 3D transform be found, and tested at 0->1 @ various points to find where error is minimized?
+		- (the camera would be moved along this transform: translation + quaternion)
+			- can you get a % turn of quaternion?
+		- what error metric to use?
+			- reprojection error?
+			- 
 
 
 ## Align point geometry 'surfaces' via camera orientation update
 
 - Steps:
-	- 
+	- hold camera A in position
+	- move camaras B,C, ... in a gradient descent way that minimizes error
 - Positives:
-	- 
+	- nonlinear steps
+	- camera location is source of truth
 - Negatives:
-	- 
-
+	- very noisy error
+QUESTIONS:
+	- what error should be minimized over?
+		- average surface distance error?
+		- 
 
 
 
 ## Align camera w/ 3D reprojection error
 
 - Steps:
-	- 
+	- SAME AS PREV, USING REPRO ERROR
 - Positives:
 	- 
 - Negatives:
@@ -178,6 +194,9 @@ REPEAT
 
 
 
+NOTES:
+	- no single camera or camera-pair should be treated as source of truth
+		- any algorithm with a single camera as truth should be repeated (randomly) using all other cameras in iteration
 
 
 

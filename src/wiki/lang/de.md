@@ -2837,6 +2837,101 @@ Tiefe Wasser sind nicht still
 
 
 
+https://www.youtube.com/watch?v=skl6N3zGv-s
+
+
+Rammstein - Adieu 
+
+| du | | en |
+|-|-|-|
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+
+Nur der Tod währt alle Zeit
+Er flüstert unterm Tannenzweig
+Muss alles in sein Dunkel ziehen
+Sogar die Sonne wird verglühen
+Doch keine Angst, wir sind bei dir
+Ein letztes Mal, so singen wir
+Adieu, Goodbye, Auf Wiedersehen
+Den letzten Weg musst du alleine gehen
+Ein letzes Lied, ein letzter Kuss
+Kein Wunder wird geschehen
+Adieu, Goodbye, Auf Wiedersehen
+Die Zeit mit dir war schön
+Aus dem Leben steigst du leise
+Die Seele zieht auf stille Reise
+Fleisch vergeht, Geist wird sich heben
+Das Sein wird sich dem Tod ergeben
+Ja
+Am Ende bist du ganz allein
+Doch wir werden bei dir sein
+Adieu, Goodbye, Auf Wiedersehen
+Den letzten Weg musst du alleine gehen
+Ein letzes Lied, ein letzter Kuss
+Kein Wunder wird geschehen
+Adieu, Goodbye, Auf Wiedersehen
+Die Zeit mit dir war schön
+Jeder stirbt für sich allein
+Ganz allein
+Doch du wirst immer bei uns sein
+Adieu, Goodbye, Auf Wiedersehen
+Den letzten Weg musst du alleine gehen
+Ein letzes Lied, ein letzter Kuss
+Kein Wunder wird geschehen
+Adieu, Goodbye, Auf Wiedersehen
+Die Zeit mit dir war schön
+
+
+Only death lasts forever
+He whispers under the pine branch
+Must draw everything into its darkness
+Even the sun will burn out
+But don't worry, we are with you
+One last time, so we sing
+Adieu, goodbye, goodbye
+You have to go the last way alone
+One last song, one last kiss
+No miracle will happen
+Adieu, goodbye, goodbye
+I had a nice time with you
+From life you rise quietly
+The soul goes on a quiet journey
+Flesh perishes, spirit will rise
+Being will surrender to death
+Yes
+In the end you are all alone
+But we will be with you
+Adieu, goodbye, goodbye
+You have to go the last way alone
+One last song, one last kiss
+No miracle will happen
+Adieu, goodbye, goodbye
+I had a nice time with you
+everyone dies alone
+All alone
+But you will always be with us
+Adieu, goodbye, goodbye
+You have to go the last way alone
+One last song, one last kiss
+No miracle will happen
+Adieu, goodbye, goodbye
+I had a nice time with you
+
+
+
+
 https://www.youtube.com/watch?v=z0wK6s-6cbo
 
 
@@ -2869,26 +2964,54 @@ Rammstein - Zick Zack
 
 | du | | en |
 |-|-|-|
+| Schöner, größer, härter |  | Nicer, bigger, harder |
+| Straffer, glatter, stärker |  | Tighter, smoother, stronger |
+| Deine Brüste sind zu klein |  | Your breasts are too small |
+| Zwei Pfund Silikon sind fein |  | Two pounds of silicone is fine |
+| Säcke schneiden von den Augen |  | Sacks cut from the eyes |
+| Nase fräsen, Fett wegsaugen |  | Mill your nose, suck off fat |
+| Wir entfernen rasch zwei Rippen |  | We quickly remove two ribs |
+| Schlauchboot basteln aus den Lippen |  | Inflatable boat tinker from the lips |
+| In die Wangen, in die Stirn |  | In the cheeks, in the forehead |
+| Botox rein bis ins Gehirn |  | Botox into the brain |
 |  |  |  |
+| Zick Zack, Zick Zack, schneid es ab |  | Zig zag, zig zag, cut it off |
+| Zick Zack, Zick Zack, kurz und knapp |  | Zig zag, zig zag, short and sweet |
 |  |  |  |
+| Alles Schlaffe überm Kinn |  | All sagging above the chin |
+| Kann man in den Nacken ziehen |  | Can be pulled in the neck |
+| Implantate ins Gefräß |  | implants in the vessel |
+| Und wir liften das Gesäß |  | And we lift the buttocks |
+| Messer, Tupfer, Vollnarkose |  | Knife, swab, general anesthesia |
+| Sieben Kilo Reiterhose und |  | Seven kilos of riding trousers and |
+| Bauchfett in die Biotonne |  | Belly fat in the bio bin |
+| Der Penis sieht jetzt wieder Sonne |  | The penis now sees the sun again |
 |  |  |  |
+| Zick Zack, Zick Zack, schneid das ab |  | Zig zag, zig zag, cut that off |
+| Tick Tack, Tick Tack, du wirst alt |  | Tick tock, tick tock, you're getting old |
+| Deine Zeit läuft langsam ab |  | Your time is running out slowly |
+| Wer schön sein will, der muss auch leiden |  | If you want to be beautiful, you also have to suffer |
+| Aus- und weg- und abschneiden |  | Cut out and cut away and cut off |
+| Nadel, Faden, Schere, Licht |  | Needle, thread, scissors, light |
+| Doch ohne Schmerzen geht es nicht |  | But it doesn't work without pain |
 |  |  |  |
+| Wangen straffen, Jochbein schnitzen |  | Tighten cheeks, carve cheekbones |
+| Sondermüll in Lippen spritzen |  | Splash hazardous waste into lips |
+| Falten rascheln am Skalpell |  | Wrinkles rustle on the scalpel |
+| Vorhaut weg, sehr aktuell |  | Foreskin gone, very topical |
+| Ist die Frau im Mann nicht froh |  | Isn't the woman in the man happy? |
+| Alles ganz weg, sowieso |  | All gone anyway |
 |  |  |  |
+| Zick Zack, Zick Zack, schneid das ab |  | Zig zag, zig zag, cut that off |
+| Tick Tack, Tick Tack, du bist alt |  | Tick tock, tick tock, you're old |
+| Deine Zeit läuft langsam ab |  | Your time is running out slowly |
 |  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-
-
-
-
-
-
-
+| Wer schön sein will, der muss auch leiden |  | If you want to be beautiful, you also have to suffer |
+| Eitelkeit ist nie bescheiden |  | Vanity is never modest |
+| Nadel, Faden, Schere, Licht |  | Needle, thread, scissors, light |
+| Doch ohne Schmerzen geht es nicht |  | But it doesn't work without pain |
+| Schöner, größer, härter |  | Nicer, bigger, harder |
+| Straffer, glatter, stärker |  | Tighter, smoother, stronger |
 
 
 
@@ -2929,6 +3052,17 @@ Rammstein - Dicke Titten
 |  |  |  |
 |  |  |  |
 
+Das Leben stumpf, der Alltag grau
+Verlier' Geduld, Verstand und Haare
+Ich hätte gerne eine Frau
+Und die Hoffnung will mir schwinden
+Eine Partnerin zu finden
+Die mir ebenbürtig ist
+Nein, da ist kein Glück in Sicht
+Sie muss nicht schön sein
+Sie muss nicht klug sein
+Nein
+
 
 Life is dull, everyday life is grey
 Lose patience, sanity and hair
@@ -2940,6 +3074,7 @@ No, there is no luck in sight
 She doesn't have to be beautiful
 She doesn't have to be smart
 no
+
 She doesn't have to be rich
 Not a model with long strides
 But big boobs
@@ -2972,16 +3107,8 @@ big boobs
 
 
 
-Das Leben stumpf, der Alltag grau
-Verlier' Geduld, Verstand und Haare
-Ich hätte gerne eine Frau
-Und die Hoffnung will mir schwinden
-Eine Partnerin zu finden
-Die mir ebenbürtig ist
-Nein, da ist kein Glück in Sicht
-Sie muss nicht schön sein
-Sie muss nicht klug sein
-Nein
+
+
 Sie muss nicht reich sein
 Kein Model mit langen Schritten
 Doch dicken Titten
@@ -3496,9 +3623,6 @@ https://www.youtube.com/watch?v=rVlQgJnHwgI
 
 
 
-
-
-https://www.youtube.com/watch?v=CJ2u3pRpCjc
 
 
 

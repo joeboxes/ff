@@ -427,6 +427,16 @@ MISSING:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+- visualize the error metrics in the volume of camera movement
+	- average reprojection error
+	- average surface-distance error
+	- average squared-surface distance error
+
+
+=> DIFFERENCE BETWEEN ACTUAL KNOWN GROUND TRUTH  v  ERROR MINIMIZED BEST POINT
+	- location on x/y/z
+	- rotation quaternion values? x/y/z rotations ?
+
 
 - 2D camera estimate from matches???
 - linear & nonlinear
@@ -609,6 +619,13 @@ OUTPUT:
 		- start with some central view/pair & extend outward
 
 		- 
+
+
+
+
+
+
+
 
 
 
