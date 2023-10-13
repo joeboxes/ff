@@ -1,0 +1,211 @@
+<html>
+<head>
+<title>ScalingTest</title>
+<script src="../code/FF.js"></script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript">
+function pageLoadedFxn(){
+	var ff = new FF("../code/",defaultClassesLoadedFxn,defaultClassesProgressFxn);
+}
+function defaultClassesProgressFxn(o){}
+function defaultClassesLoadedFxn(){
+	scriptLoader = new ScriptLoader("./",[],this,customClassesLoadedFxn,customClassesProgressFxn);
+	scriptLoader.load();
+}
+function customClassesProgressFxn(o){}
+function customClassesLoadedFxn(){
+	var w = new Wifi();
+}
+
+
+
+
+function Wifi(){
+	this.handleLoaded();
+}
+Wifi.prototype.handleLoaded = function(){
+	this._canvas = new Canvas(null,600,400,Canvas.STAGE_FIT_FILL);
+	this._stage = new Stage(this._canvas, 1000/20);
+	this._keyboard = new Keyboard();
+	this._root = new DO();
+	this._stage.addChild(this._root);
+// this._root.matrix().translate(100,400);
+	this.addListeners();
+	this.drawDiagram();
+}
+Wifi.prototype.addListeners = function(){
+	this._canvas.addListeners();
+	this._stage.addListeners();
+	this._keyboard.addListeners();
+	this._stage.start();
+	GLOBALSTAGE = this._stage;
+}
+
+Wifi.prototype.drawDiagram = function(){
+		console.log("LOADED WIFI");
+
+		GLOBALSTAGE.root().matrix().scale(1.5,1.5);
+
+		GLOBALSTAGE.root().matrix().translate(100,250);
+
+		var textSize = 24;
+
+		var d;
+
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setLine(4.0,0xFF000000);
+		d.graphics().moveTo(0,0);
+		d.graphics().lineTo(0,450);
+		d.graphics().lineTo(250,450);
+		d.graphics().lineTo(250,200);
+		d.graphics().lineTo(800,200);
+		d.graphics().lineTo(800,0);
+		d.graphics().endPath();
+		d.graphics().strokeLine();
+		d.matrix().scale(1,-1);
+		d.matrix().translate(100,500);
+		GLOBALSTAGE.addChild(d);
+		var perimeter = d;
+
+		// burgundy
+		var burRad = 200;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x99FF0033,0x99FF0033,0x00FF0033] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(600,200);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("burgundy", textSize, DOText.FONT_ARIAL, 0xFF660011, DOText.ALIGN_CENTER);
+		d.matrix().translate(700,250);
+		GLOBALSTAGE.addChild(d);
+
+		// burgundy 5g
+		var burRad = 350;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x99CC0066,0x99CC0066,0x00CC0066] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(600,120);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("burgundy_5g_1", textSize, DOText.FONT_ARIAL, 0xFF660011, DOText.ALIGN_CENTER);
+		d.matrix().translate(700,375);
+		GLOBALSTAGE.addChild(d);
+
+		// ext 1
+		var burRad = 200;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x993300FF,0x993300FF,0x003300FF] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(375,175);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("burgundy_EXT_1", textSize, DOText.FONT_ARIAL, 0xFF110066, DOText.ALIGN_CENTER);
+		d.matrix().translate(450,350);
+		GLOBALSTAGE.addChild(d);
+
+		// ext 2
+		var burRad = 200;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x9900FF33,0x9900FF33,0x0000FF33] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(125,100);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("burgundy_EXT_2", textSize, DOText.FONT_ARIAL, 0xFF006611, DOText.ALIGN_CENTER);
+		d.matrix().translate(225,400);
+		GLOBALSTAGE.addChild(d);
+		
+		// ext 3
+		var burRad = 200;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x99FF9900,0x99FF9900,0x00FF9900] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(200,350);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("burgundy_EXT_3", textSize, DOText.FONT_ARIAL, 0xFF660033, DOText.ALIGN_CENTER);
+		d.matrix().translate(300,150);
+		GLOBALSTAGE.addChild(d);
+
+
+		// modem
+		var d = new DOText("modem", textSize, DOText.FONT_ARIAL, 0xFF000000, DOText.ALIGN_CENTER);
+		d.matrix().translate(700,325);
+		GLOBALSTAGE.addChild(d);
+
+
+		// 11812
+
+
+		// mau_da_tia_EXT_1
+		var burRad = 250;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x99CCCCCC,0x99CCCCCC,0x00CCCCCC] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(150,550);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("mau_da_tia_EXT_1", textSize, DOText.FONT_ARIAL, 0xFF666666, DOText.ALIGN_CENTER);
+		d.matrix().translate(250,-50);
+		GLOBALSTAGE.addChild(d);
+
+
+		// mau_da_tia_EXT_2
+		var burRad = 250;
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setRadialFill(0,0, 0,  0,0, burRad,  [0.0,0.75,1.0], [0x99AAAAAA,0x99AAAAAA,0x00AAAAAA] );
+		d.graphics().drawCircle(0,0, burRad);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.matrix().translate(250,300);
+		var burgundyCircle = d;
+		perimeter.addChild(burgundyCircle);
+
+		var d = new DOText("mau_da_tia_EXT_2", textSize, DOText.FONT_ARIAL, 0xFF666666, DOText.ALIGN_CENTER);
+		d.matrix().translate(350,200);
+		GLOBALSTAGE.addChild(d);
+
+
+
+}
+
+
+</script>
+</head>
+<body onload="pageLoadedFxn();" style="border:0px;margin:0px;border:0px;">
+</body>
+</html>

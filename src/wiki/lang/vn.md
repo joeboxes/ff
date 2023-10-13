@@ -173,12 +173,16 @@ tiền bạc
 | mũi |  | nose |
 | lông mày |  | eyebrow |
 |  |  |  |
+| lưỡi | louie | tongue |
+| bụng | bunh | tummy, belly |
+|  |  |  |
+| (mô) đất | diat | butt |
 |  |  |  |
 |  |  |  |
-| cánh tay |  | arm |
-|  |  |  |
-| chân |  | leg/foot |
-|  |  |  |
+| (cánh) tay |  | arm |
+| ngón tay |  | finger |
+| chân | chungh | leg/foot |
+| ngón chân |  | toes |
 |  |  |  |
 |  |  |  |
 | găng tay |  | glove |
@@ -189,8 +193,12 @@ cái đầu | kai dow |  head
 vai | vie | shoulder
 đầu gối | dow goy | knee
 ngón chân | ngon chan | toe
-
-
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
 |  |  |  |
 |  |  |  |
 |  |  |  |
@@ -490,6 +498,7 @@ songs:
 KHI TOI 20 (Đoan Trang) - when I was 20:
 https://www.youtube.com/watch?v=xB5NMm0mTp0
 https://www.youtube.com/watch?v=ya_28w1SZUA
+https://www.youtube.com/watch?v=xn4PUMVq1cEs
 
 | REFRAIN A: |  |  |
 | ngày đó khi tôi hai mươi |  | That day when I was twenty |
@@ -521,6 +530,11 @@ https://www.youtube.com/watch?v=ya_28w1SZUA
 | oh oh oh |  | ... |
 | oh yeah, oh yeah, oh yeah |  |  |
 |  |  |  |
+
+
+missing more
+
+
 | REFRAIN A |  |  |
 |  |  |  |
 | REFRAIN B |  |  |
@@ -661,8 +675,6 @@ https://www.youtube.com/watch?v=Vlf4Pkd9h48
 Thiên Duyên Tiền Định
 
 
-
-
 Đầu năm hoa lá xôn xao nở như đón chào
 Nhờ anh tiên đoán năm nay duyên nợ thế nào
 Phận nghèo chẳng dám ước cao
@@ -721,6 +733,132 @@ Rich in money, the wedding day will be happy
 Poverty is roughly like that
 Who laughs in the world?
 Getting married at the beginning of the year, adding people at the end of the year
+
+
+
+
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+[@0:27]
+Đầu năm hoa lá xôn xao nở như đón ... chào
+Nhờ anh tiên đoán năm nay [z]uyên nợ thế-nào
+[..]
+Phận nghèo chẳng dám ước-cao
+Chỉ cần tình nghĩa với nhau
+Nếu ai tâm đầu ngỏ-lời là nên [z]iai ngẫu
+
+b:[tu tai am coi la]
+girl: [yah neaaah]
+b: [yeah em sum sam lang yeh]
+g: [yuh yeng]
+b: [den coi]
+
+[@ 50]
+
+Mười hai con giáp em đây cầm tinh quý mùi
+Cầm tay anh đoán năm nay [z]uyên lành đến [z]ồi
+Gặp chồng hiền đức [z]dễ thương
+Tuổi này vượng số lắm con
+Muốn cho vuông tròn nhờ anh môi-[z]iới mối mai đưa-[duoung]
+
+[- @ 2:10]
+Người ấy quê quán nơi nào [z]iàu nghèo
+Tuổi tác .. bao lớn sang hèn thế nào ?
+
+Anh ta tuổi chừng hai-mươi-mấy
+Quen lắm nhìn sơ em-biết ngay
+chẳng ai xa lạ- chàng ấy chính là anh đây
+
+Tài năng tiên đoán như anh thật khôn quá trời
+Tình [z]uyên đưa tới em ơi duyên định sẵn [z]ồi
+
+(Song ca: )
+[Z]iàu tiền ngày cưới sẽ vui
+Nghèo thì đại khái thế thôi
+Thế [z]ian ai cười
+Đầu năm lo cưới, cuối năm thêm-người
+
+[@ 1:42]
+
+g: [chao ahn]
+b: [chao em]
+g: [yeah chea can mut wea]
+b: [am co yeah ]
+g: [yeah chim so]
+b: [chim so eh?]
+-
+g: [yeah dum so]
+g: [yeah dum roi]
+
+b: [duc roi ... em]
+g: [kohm deah dun sam oiu]
+b: [-tick-tick-tick]
+b: [yeah soum ohm na mac oi]
+
+g: [dum soi eah choi]
+b: [*achem* - dem boi hit ohm weh- ah]
+g: [yeah]
+b: [nam nay lam con choi duh]
+g: [teh khom ahn]
+
+...
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+
+
+5 dollar grandma nursury rhyme
+
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

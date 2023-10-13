@@ -53,86 +53,140 @@ function classesLoadedFxn(){
 
 	var symbols = [
 // "CMG",
+// "SYY",
 
-
+		"AAL",
 		"AAPL",
-		"APLE",
-
+		"ABNB",
+		"AI",
 		"AIR",
 		"ALK",
 		"AMD",
 		"AMZN",
-
+		"APLE",
+		"AZN",
+		"BA",
 		"BABA",
 		"BBWI",
+		"BBBY",
+		"BLMN",
 		"BJ",
 		"BNTX",
 
+		"CAKE",
 		"CBRE",
+		"CBRL",
 		"COST",
-
 		"CLDT",
 		"CMG",
 		"CR",
+		"CSCO",
 		"CVS",
 		"CWK",
+
 		"DAL",
+		"DASH",
 		"DENN",
+		"DIN",
 		"DIS",
 
+		"EPR",
 		"ETSY",
 
 
 		"F",
+		"FL",
 
 		"GD",
 		"GE",
+		"GME",
 		"GOLF",
 		"GOOG",
+		"GS",
 
+		"HA",
 		"HD",
+
 		"ICE",
 		"IMBI",
 		"INTC",
 		"INTU",
 
 		"JAKK",
+		"JBLU",
 		"JD",
 		"JNJ",
 		"JPM",
+		"JWN",
+
+		"K",
 		"KO",
 		"KR",
 
+		"LOW",
 		"LOVE",
 		"LMT",
 		"LUV",
+		"LYFT",
+
 		"M",
+//		"MAIN",
 		"MBUU",
 		"MDB",
+		"META",
+		"MRK",
+		"MRNA",
 		"MSFT",
+
 		"NCLH",
+		"NFLX",
+		"NKE",
+		"NNN",
+		"NVDA",
 
 		"O",
+		"ORCL",
 		"OSTK",
+
 		"PATH",
+		"PEP",
 		"PFE",
+		"PLAY",
 		"PLYA",
 		"PLBY",
 		"PG",
 
+		"RBLX",
+		"RIVN",
+		"RMCF",
 		"RMR",
+		"ROKU",
+		"RRGB",
 		"RTX",
+
 		"SAVE",
 		"SBUX",
+		"SKYW",
+		"SNAP",
+		"SQ",
+		"STKH",
+//		"STOR",
 		"SYY",
 
+
 		"TEAM",
+		"TGT",
 		"TJX",
 		"TMUS",
-		
 		"TSLA",
+		"TSN",
 		"TTWO",
 		"TXT",
+		
+		"UAL",
+		"UBER",
+		"UPST",
+
 		"VAC",
 		"VSTO",
 
@@ -141,10 +195,19 @@ function classesLoadedFxn(){
 		"WH",
 		"WOOF",
 		"WMT",
+		"WYNN",
+
+		"Z",
+		"ZG"
 
 		];
 
 /*
+	symbols.sort(function(a,b){
+		return a < b ? -1 : 1;
+	});
+
+
 
 */
 
@@ -165,8 +228,9 @@ var ticker = global_symbols.shift();
 // console.log("ticker: "+ticker);
 global_ticker = ticker;
 	var ajax = new Ajax();
+	//console.log(ajax);
 	var cnnUrl = "https://money.cnn.com/quote/forecast/forecast.html?symb="+ticker;
-
+	//console.log("cnnUrl: '"+cnnUrl+"'");
 	var url = "http://localhost/repos/ff/src/stock/request_forward.php"
 
 	//console.log("  > "+url);
@@ -200,14 +264,19 @@ console.log(ticker);
 
 	// 
 	var valueMedian = contents.match(/median target of ([0-9]*,?[0-9]*.?[0-9]*),/g);
-//	console.log(valueMedian);
-	valueMedian = valueMedian[0];
-	valueMedian = valueMedian.replace("median target of ","");
-//	console.log(valueMedian);
-	valueMedian = valueMedian.replaceAll(",","");
-//	console.log(valueMedian);
-	valueMedian = Number(valueMedian);
-//	console.log(valueMedian);
+	// console.log(valueMedian);
+	if(!valueMedian){
+		console.log("no median value");
+		checkMakeRequest();
+		return;
+	}else{
+		valueMedian = valueMedian[0];
+		valueMedian = valueMedian.replace("median target of ","");
+	//	console.log(valueMedian);
+		valueMedian = valueMedian.replaceAll(",","");
+	//	console.log(valueMedian);
+		valueMedian = Number(valueMedian);
+	}
 
 	// 
 	var valueLow = contents.match(/a low estimate of ([0-9]*,?[0-9]*.?[0-9]*)/g);

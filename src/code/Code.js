@@ -11822,7 +11822,11 @@ Code.distancePointLine3D = function(org,dir, point){ // finite ray and point ---
 }
 Code.distancePointRayFinite3D = Code.distancePointLine3D; // NOT TRUE ?
 Code.closestPointLineSegment3D = function(org,dir, point){ // finite ray and point
-	var t = (V3D.dot(dir,point)-V3D.dot(org,dir))/V3D.dot(dir,dir);
+	var d2 = V3D.dot(dir,dir);
+	if(d2==0){
+		return new V3D(org.x,org.y,org.z);
+	}
+	var t = (V3D.dot(dir,point)-V3D.dot(org,dir))/d2
 	if(t<=0){
 		return new V3D(org.x,org.y,org.z);
 	}else if(t>=1){

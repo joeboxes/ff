@@ -653,6 +653,7 @@ Canvas.prototype.createLinearGradient = function(sX,sY,eX,eY, locations, colors)
 Canvas.prototype.createRadialGradient = function(sX,sY,sR, eX,eY,eR, locations, colors){ // locations || percentsAndColors
 	var i, pct, col, gra;
 	if(eR===undefined && locations===undefined && colors===undefined){
+		//console.log("createRadialGradient A")
 		locations = eX;
 		colors = eY;
 		eR = sR;

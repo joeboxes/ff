@@ -200,6 +200,65 @@ NOTES:
 
 
 
+Plot3DCameraError
+
+
+
+
+
+# ALIGNMENT THOUGHTS
+
+## GOAL:
+- separate pairs of view reconstructions need to be aligned together in a global sense
+	- sequentially: add a view / view-pair at a time
+	- all at once: from initial global estimate align all views / view-pairs at the same time
+
+
+## PROBLEMS:
+- in practice the view orientations don't converge
+	- all the points blurr
+	- the views move around
+
+## CAUSES?:
+- the optimization criteria is very noisy with many local minima
+- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

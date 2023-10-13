@@ -470,9 +470,47 @@ Yesterday I saw her dancing for me
 
 
 
+la vida loca spanish
+https://www.youtube.com/watch?v=UlH2IYibhck
 
 
+La reina de la noche la diosa del vudú 
+Yo no podre salvarme podrás salvarte tu?
 
+La tela de la arana, la una del dragón 
+Te lleva a los infiernos ella es tu adicción
+
+Te besa y te desnudo con tu baile demencial
+Tu cierras los ojitos y te dejas arrastrar
+Tu te dejas arrastrar
+
+[Chorus]
+Ella que será - she's livin' la vida loca y te dolerá 
+Si de verdad te toca ella es tu final 
+Vive la vida loca ella te dirá 
+Vive la vida loca she's livin' la vida loca 
+- 
+
+Se fue a New York City 
+A la torre de un hotel 
+Te ha robado la cartera 
+Se ha llevado hasta tu piel 
+Por eso no bebía de tu copa de licor 
+Por eso te besame con narcótico sabor, 
+Es el beso de calor 
+
+[Chorus]
+
+Te besa y te desnuda con su baile demencial 
+Tu cierras los ojitos y te dejas arrastrar 
+Tu te dejas arrastrar
+
+Ella que será she's livin' la vida loca, 
+Y te dolerá si de verdad te toca 
+Ella es tu final 
+Vive la vida loca 
+Ella te dirá 
+Vive la vida loca
 
 
 

@@ -1344,6 +1344,21 @@ var tz = P.get(2,3);
 
 R3D._testMatchViewGeometry3D = function(){
 
+
+/*
+	STEPS:
+		- create ground truth:
+			- 3D points
+			- cameras: A, B, C
+			- 2D projected points on A, B, C
+			- relative transforms for AB, AC, BC
+		- create errored points:
+			- 2D projected points on A, B, C
+			- relative transforms for AB, AC, BC
+			- 3D points in each relative pair AB, AC, BC
+*/
+
+
 	// setup display
 	var displayScale = 50.0;
 	var stage = GLOBALSTAGE;
@@ -1423,8 +1438,8 @@ R3D._testMatchViewGeometry3D = function(){
 		cameras.push(camera);
 		
 		// create images
-		var error2DSigma = 0.0;
-		// var error2DSigma = 0.1;
+		// var error2DSigma = 0.0;
+		var error2DSigma = 0.1;
 		// var error2DSigma = 1.0;
 		// var error2DSigma = 2.0;
 		var size = camera["size"];
@@ -1494,12 +1509,12 @@ R3D._testMatchViewGeometry3D = function(){
 	}
 	console.log(pairs);
 
-console.log("checkpoint E");
+console.log("checkpoint E - create errored relative transforms for each camera pair");
 
 	// put cameras in slightly off orientations
 	// var error3DCameraSigma = 0.0;
-	// var error3DCameraSigma = 0.1;
-	var error3DCameraSigma = 1.0;
+	var error3DCameraSigma = 0.1;
+	//var error3DCameraSigma = 1.0;
 	// var error3DCameraSigma = 2.0;
 	// var error3DCameraSigma = 5.0;
 	for(var i=0; i<cameras.length; ++i){
@@ -1518,7 +1533,7 @@ console.log("checkpoint E");
 		camera["extError"] = extError;
 	}
 
-console.log("checkpoint G");
+console.log("checkpoint G - calculate (errored) triangulated 3D points for each camera pair from (errored) relative transform");
 
 	// estimate all P3D locations with error in absolute location:
 	for(var i=0; i<pairs.length; ++i){
@@ -1550,6 +1565,9 @@ console.log("checkpoint G");
 		}
 
 	}
+
+
+console.log("checkpoint ABC - ???");
 
 	// cam A-B = fixed positions
 	var pairAB = pairs[0];
@@ -1613,12 +1631,24 @@ var pointsFrom2D = [];
 	// SHOW THE VECTOR OF C -> DESIRED C
 
 
+console.log("checkpoint PLOT - show local movements of camera C and how error changes");
+
+
+
+
+var result = R3D.Plot3DCameraError(cameraA, cameraB, cameraC, pairs);
+console.log(result);
+
+
+throw "...";
+
+
 
 // ESTIMATE OF TRANSFORM TO MOVE POINTS FROM TO POINTS TO
 // transformCorrection3D
 
 
-console.log("checkpoint K");
+console.log("checkpoint K - START EXPECTED PROCESS");
 
 // console.log(pointsFrom);
 // console.log(pointsTo);
@@ -1630,6 +1660,10 @@ var debugDirection = transformCorrection3D.multV3DtoV3D(V3D.ZERO);
 // console.log("D:\n"+debugDirection);
 // center-center offset
 // plane of rotation
+
+
+console.log("checkpoint E");
+
 
 
 console.log("checkpoint N");
@@ -1651,7 +1685,7 @@ console.log("checkpoint N");
 			var putID = putativePairs[j];
 			var p = points3D[putID];
 			if(p){
-				p = transformCorrection3D.multV3DtoV3D(p); // udpate to new location
+				p = transformCorrection3D.multV3DtoV3D(p); // update to new location
 				points2DNew.push(point2D);
 				points3DNew.push(p);
 			}
@@ -1694,9 +1728,6 @@ console.log("improve on initial C matrix");
 
 
 
-
-var result = R3D.Plot3DCameraError(cameraC["Kimage"], Matrix.inverse(cameraC["Kimage"]), cameraC["extError"], points3DNew, points2DNew, maxSubDivisions, sizeTranslate, sizeRotate);
-console.log(result);
 
 console.log("checkpoint R 1");
 //*
@@ -58872,7 +58903,7 @@ R3D.averageVectorsArray3D = function(r,g,b){
 	var vector = Code.averageAngleVector3D(vectors);
 	return [vector.x,vector.y,vector.z];
 }
-R3D.averageTransformEuclidean3D = function(pointsFrom, pointsTo){
+R3D.averageTransformEuclidean3D = function(pointsFrom, pointsTo){ // TODO: this has no rotation angle ?
 	var transform = new Matrix(4,4).identity();
 	if(!pointsFrom || pointsFrom.length==0){
 		return transform;
@@ -59351,6 +59382,216 @@ R3D._gd_BAPointExtrinsic = function(args, x, isUpdate){
 
 
 
+// move C around and see what kind of error that looks like locally
+R3D.Plot3DCameraError = function(cameraA, cameraB, cameraC, pairs){
+
+	
+
+console.log(cameraA, cameraB, cameraC, pairs);
+
+	var distanceTranslatePlot = 0.1;
+	// var distanceTranslatePlot = 0.1; // should scale with baseline / point sigma
+	//var distanceTranslatePlot = 0.5;
+	// var distanceTranslatePlot = 1.0;
+	//var distanceTranslateSegments = 5;
+	// var distanceTranslateSegments = 7;
+	var distanceTranslateSegments = 9;
+		var halfTranslateSegments = (distanceTranslateSegments - 1)/2 | 0;
+
+	var distanceRotationPlot = 0;//Code.radians(10);
+	var distanceRotationSegments = 5;
+
+	var extErrorA = cameraA["extError"];
+	var extErrorB = cameraB["extError"];
+	var extErrorC = cameraC["extError"];
+
+	var spaceA = cameraA["space2D"];
+	var spaceB = cameraB["space2D"];
+	var spaceC = cameraC["space2D"];
+	var points2DA = spaceA.toArray();
+	var points2DB = spaceB.toArray();
+	var points2DC = spaceC.toArray();
+
+	// var Ka = cameraA["K"];
+	// var Kb = cameraB["K"];
+	// var Kc = cameraC["K"];
+	var Ka = cameraA["Kimage"];
+	var Kb = cameraB["Kimage"];
+	var Kc = cameraC["Kimage"];
+
+
+	var KinvA = Matrix.inverse(Ka);
+	var KinvB = Matrix.inverse(Kb);
+	var KinvC = Matrix.inverse(Kc);
+
+
+	var absErrorA = Matrix.inverse(extErrorA);
+	var absErrorB = Matrix.inverse(extErrorB);
+	var absErrorC = Matrix.inverse(extErrorC);
+
+	var distortion = null;
+
+	// reprojection error:
+	var totalErrorReprojection = 0;
+	var totalErrorCount = 0;
+	var samples = [];
+
+	// surface distance error:
+
+
+	var off = new V3D();
+	var abs = new Matrix(4,4);
+	for(var z=0; z<distanceTranslateSegments; ++z){
+		for(var y=0; y<distanceTranslateSegments; ++y){
+			for(var x=0; x<distanceTranslateSegments; ++x){
+				off.set(x,y,z);
+//				console.log("off A: "+off);
+				off.sub(halfTranslateSegments, halfTranslateSegments, halfTranslateSegments);
+				//console.log("off: "+off);
+				off.scale(distanceTranslatePlot);
+//				console.log("off B: "+off);
+				abs.copy(absErrorC);
+
+				// does this need to happen BEFORE or AFTER ?
+				abs = Matrix.transform3DTranslate(abs, off);
+				var center = abs.multV3DtoV3D(V3D.ZERO);
+//				console.log("center: "+center);
+				var ext = Matrix.inverse(abs);
+
+
+				totalErrorReprojection = 0;
+				totalErrorCount = 0;
+				for(var i=0; i<points2DC.length; ++i){
+					var point2DC = points2DC[i];
+					var point3D = point2DC["point3D"];
+
+//					console.log(point3D);
+
+					var location3D = point3D["point3D"];;
+//					console.log("location3D");
+//					console.log(location3D);
+
+					var points2D = point3D["points2D"];
+					// console.log(points2D);
+					var p2DA = points2D["0"]["point2D"];
+					var p2DB = points2D["1"]["point2D"];
+					var p2DC = points2D["2"]["point2D"];
+					// console.log(p2DA,p2DB,p2DC);
+					//throw "..."
+					list2D = [p2DA,p2DB,p2DC];
+					var extrinsics = [extErrorA,extErrorB,ext];
+					//var extrinsics = [extErrorA,extErrorB,extErrorC];
+					var Kinvs = [KinvA,KinvB,KinvC];
+					var distortion = null;
+					// console.log("before ");
+					var estimated3D = R3D.triangulatePointDLTList(list2D, extrinsics, Kinvs, null, null);
+					// console.log("estimated3D: "+estimated3D);
+					var errorC = R3D.reprojectionErrorSingle(estimated3D, p2DC, ext, Kc, distortion);
+//					console.log("errorC: "+errorC);
+					//var errorBC = reprojectionErrorSingle(estimated3D, p2D, extrinsic, K, distortion);
+					//var error = reprojectionErrorSingle(p3D, p2D, extrinsic, K, distortion);
+					// R3D.reprojectionError = function(p3D, pA,pB, extrinsicA, extrinsicB, Ka, Kb){
+					//var error = R3D.reprojectionErrorList(p3D, pA,pB, cameraA, cameraB, Ka, Kb, info);
+					var error = errorC;
+					totalErrorReprojection += error;
+					totalErrorCount += 1;
+					// throw "..."
+				}
+//				throw "..."
+				totalErrorReprojection /= totalErrorCount;
+console.log(totalErrorReprojection);
+				samples.push({"error":totalErrorReprojection, "location":center.copy()});
+
+				// var points2D = points2DC[i];
+				// var point3D = p2D["point3D"];
+				// // console.log(point3D);
+				// var points3D = point3D["points3D"];
+
+				//var loc = ;
+				//console.log(loc);
+				// throw "..."
+			}
+		}
+	}
+	console.log(samples);
+
+
+	// 
+
+	// plot3(1,0,0, 'marker', '*', 'markeredgecolor', colorR );
+
+	var minError = null;
+	var maxError = null;
+	for(var i=0; i<samples.length; ++i){
+		var sample = samples[i];
+		var error = sample["error"];
+		if(minError===null){
+			minError = error;
+			maxError = error;
+		}else{
+			minError = Math.min(minError,error);
+			maxError = Math.max(maxError,error);
+		}
+	}
+
+	var ranError = maxError-minError;
+	// console.log(maxError,minError,ranError);
+	// plot
+	
+
+	var str = "";
+	str = str + "hold off;" + "\n";
+
+	// var colorSpectrum = [new V3D(0,1,0), new V3D(1,0,0)]; // 0->1
+	// for(){
+	// 	var colors = [0xFF000000, 0xFF000099, 0xFFCC00CC, 0xFFFF0000];
+	// }
+	//var colorSpectrum = [0xFFFF0000, 0xFF00FF00]; // 0->1
+	var colorSpectrum = [0xFFFF0000, 0xFFCCCC00, 0xFF00FF00]; // 0->1
+	for(var i=0; i<samples.length; ++i){
+		var sample = samples[i];
+		// console.log(sample);
+		var error = sample["error"];
+		var p = sample["location"];
+		// console.log(error);
+		var percent = (error-minError)/ranError;
+		//percent = Math.pow(percent,2.0);
+		percent = Math.pow(percent,0.50);
+		percent = 1.0 - percent;
+		//console.log(percent);
+		// console.log(percent);
+		// console.log(colorSpectrum);
+		var color = Code.interpolateColorGradientARGB(percent, colorSpectrum);
+		color = Code.getFloatARGB(color);
+		// console.log(color);
+		color.shift();
+		// var line = "plot3(["+p.x+","+p.y+","+p.z+"], 'marker', '*', 'markeredgecolor', ["+color+"] );";
+
+		// var line = "plot3("+p.x+","+p.y+","+p.z+", '*', ["+color+"] );";
+		// var line = "plot3("+p.x+","+p.y+","+p.z+", '*');";
+
+		var line = "scatter3("+p.x+","+p.y+","+p.z+", 11, ["+color+"], 'filled' );";
+		// plot3(7.9998,-1.0002,-1.0001999999999995, '*', [0.1843137254901961,0.8156862745098039,0] );
+		str = str + line + "\n";
+		if(i==0){
+			str = str + "hold on;" + "\n";
+		}
+	}
+
+	str = str + "axis equal;" + "\n";
+
+
+	
+
+
+	console.log(str);
+
+
+
+	throw "?"
+}
+
+
 
 R3D.FiniteElementCameraGeometricDistance = function(K, Kinv, P, points3D, points2D, maxSubdivisions, distanceXYZ, angleXYZ){
 
@@ -59359,6 +59600,7 @@ R3D.FiniteElementCameraGeometricDistance = function(K, Kinv, P, points3D, points
 
 	throw "?"
 }
+
 
 
 
