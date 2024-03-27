@@ -6813,9 +6813,362 @@ console.log("edges");
 }
 
 
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Stereopsis.World.prototype.sequentiallyViewsOrder = function(){
+	// TODO: get views order based on high connectivity & low error
+	var views = Code.objectToArray(this._views);
+	//var connectivity = {};
+	var transforms = this._transforms;
+	console.log(transforms);
+	var keys = Code.keys(transforms);
+	// create graph:
+	var vertexLookup = {};
+	var graph = new Graph();
+	for(var i=0; i<views.length; ++i){
+		var view = views[i];
+		var vertex = graph.addVertex();
+		vertex.data([view]);
+		vertexLookup[view.id()+""] = vertex;
+	}
+	
+	for(var k=0; k<keys.length; ++k){
+		var key = keys[k];
+		var transform = transforms[key];
+		//console.log(transform);
+		var connectivityWeight = transform.matchCount();
+		var errorR = transform.rMean();
+		if(errorR){
+			connectivityWeight = connectivityWeight / errorR;
+		}
+		if(connectivityWeight==0){
+			continue;
+		}
+		var viewAID = transform.viewA().id();
+		var viewBID = transform.viewB().id();
+		var vertexA = vertexLookup[viewAID+""];
+		var vertexB = vertexLookup[viewBID+""];
+		graph.addEdgeDuplex(vertexA,vertexB,connectivityWeight);
+		/*
+		
+		if(!connectivity[viewAID]){
+			connectivity[viewAID] = 0;
+		}
+		if(!connectivity[viewBID]){
+			connectivity[viewBID] = 0;
+		}
+		connectivity[viewAID] += connectivityWeight;
+		connectivity[viewBID] += connectivityWeight;
+		*/
+	}
+	console.log(graph);
+	
+
+var printGraph = function(graph, offset){
+
+	var info = graph.display2D(false);
+	console.log(info);
+
+	var info = graph.display2D();
+
+	var positions = info["positions"];
+	var vertexes = info["vertexes"];
+	var edges = info["edges"];
+
+	var vertexIDtoIndex = {};
+	for(var i=0; i<vertexes.length; ++i){
+		var vertex = vertexes[i];
+		vertexIDtoIndex[vertex.id()] = i;
+	}
+
+
+	var worldScale = 400.0;
+	var rad = 0.01;
+	var worldOffset = new V2D(300 + offset,300);
+	for(var i=0; i<positions.length; ++i){
+		var vertex = vertexes[i];
+		var position = positions[i];
+		var isLeaf = vertex.data()["leaf"];
+		// CIRCLES
+			var p = new V2D(position.x*worldScale,position.y*worldScale);
+			var d = new DO();
+
+			if(isLeaf){
+				d.graphics().setLine(2.0,0xFFFF0000);
+			}else{
+				d.graphics().setLine(2.0,0xFF0000FF);
+			}
+			d.graphics().beginPath();
+			d.graphics().drawCircle(p.x,p.y,rad*worldScale);
+			d.graphics().endPath();
+			d.graphics().strokeLine();
+			d.matrix().translate(worldOffset.x, worldOffset.y);
+			GLOBALSTAGE.addChild(d);
+		// LABEL:
+		// var label = indexToLetter[vertex.id()]["n"];
+
+// console.log(vertex.data()[0].id())
+
+		//var label = vertex.id();
+var label = "";
+var vs = vertex.data();
+console.log(vs);
+for(var s=0; s<vs.length;++s){
+	label = label+"-"+vs[s].id();
+}
+
+		var d = new DOText(""+label, 14, DOText.FONT_ARIAL, 0xFF009900, DOText.ALIGN_CENTER);
+			d.matrix().translate(worldOffset.x - 0 + p.x, worldOffset.y - 10 + p.y);
+			GLOBALSTAGE.addChild(d);
+	}
+
+	// edges
+	var d = new DO();
+	
+	GLOBALSTAGE.addChild(d);
+	for(var i=0; i<edges.length; ++i){
+		
+		var edge = edges[i];
+		var vA = edge.A();
+		var vB = edge.B();
+		var idA = vA.id();
+		var idB = vB.id();
+			idA = vertexIDtoIndex[idA];
+			idB = vertexIDtoIndex[idB];
+		var positionA = positions[idA];
+		var positionB = positions[idB];
+
+		d.graphics().setLine(1.0,0xFF006600);
+
+		positionA = positionA.copy();
+		positionA.scale(worldScale);
+		positionB = positionB.copy();
+		positionB.scale(worldScale);
+
+		d.graphics().beginPath();
+		d.graphics().moveTo(positionA.x,positionA.y);
+		d.graphics().lineTo(positionB.x,positionB.y);
+		d.graphics().endPath();
+		d.graphics().strokeLine();
+
+		// var label = edge.weight();
+		//var label = edge.data()[0].id();
+		var label = "";
+		/*
+		var t = new DOText(""+label, 14, DOText.FONT_ARIAL, 0xFF000099, DOText.ALIGN_CENTER);
+		var p = V2D.avg(positionA,positionB);
+			t.matrix().translate(worldOffset.x - 0 + p.x, worldOffset.y - 0 + p.y);
+			GLOBALSTAGE.addChild(t);
+			*/
+	}
+	
+	d.matrix().translate(worldOffset.x, worldOffset.y);
+}
+
+
+
+
+
+
+
+
+	var vertexes = Code.objectToArray(vertexLookup);
+	var maxVertex = null;
+	var maxCount = 0;
+	for(var i=0; i<vertexes.length; ++i){
+		var vertex = vertexes[i];
+		var edges = vertex.edges();
+		var count = 0;
+		for(var j=0; j<edges.length; ++j){
+			var edge = edges[j];
+			var weight = edge.weight();
+			count += weight;
+		}
+		if(maxVertex==null || count>maxCount){
+			maxVertex = vertex;
+			maxCount = count;
+		}
+	}
+	console.log(maxVertex);
+	var currentVertex = maxVertex;
+
+
+	console.log("BEST VERTEX:  "+currentVertex.data()[0].id());
+
+	var mergeVertexFxn = function(next, a,b){
+		var dataA = a.data();
+		var dataB = b.data();
+		var dataC = Code.arrayPushArray(dataA,dataB);
+		console.log(dataC);
+		next.data( dataC );
+	}
+
+
+
+
+var ccc = 0;
+	while(ccc<10){
+
+	printGraph(graph, 400 * ccc);
+console.log(graph.vertexes().length);
+		var edges = currentVertex.edges();
+		console.log(edges)
+		if(edges.length==0){
+			console.log("no more edges");
+			break;
+		}
+		var bestEdge = null;
+		var bestWeight = 0;
+		for(var i=0; i<edges.length; ++i){
+			var edge = edges[i];
+			var weight = edge.weight();
+			if(bestEdge==null || weight>bestWeight){
+				bestEdge = edge;
+				bestWeight = weight;
+			}
+		}
+		console.log(bestWeight);
+		var nextVertex = bestEdge.opposite(currentVertex);
+		console.log(nextVertex);
+		console.log("CURRENT VERTEX:  "+currentVertex.data()[0].id());
+		console.log("NEXT VERTEX:  "+nextVertex.data()[0].id());
+console.log("MERGE VERTEXES ........................................................ "+ccc+" @ ");
+		var mergedVertex = graph.mergeVertexes(currentVertex, nextVertex, mergeVertexFxn);
+		currentVertex = mergedVertex;
+++ccc;
+	}
+
+
+//console.log("VERTEXES:");
+//console.log(graph.vertexes());
+	printGraph(graph, 400 * ccc);
+
+
+	var viewList = currentVertex.data();
+	console.log(viewList);
+
+	return viewList;
+}
+Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
+	var workOrderedViews = this.show???();
+	console.log(workOrderedViews);
+	// store original view absolute transforms
+	var originalAbsoluteViewTransforms = {};
+	for(var i=0; i<workOrderedViews.length; ++i){
+		var view = workOrderedViews[i];
+		var viewID = view.id();
+		originalAbsoluteViewTransforms[viewID+""] = view.absoluteTransform().copy();
+	}
+
+	console.log(originalAbsoluteViewTransforms);
+// set first 2 default views [highest connectivity / lowest average sigma error (R,...)]
+
+
+
+// optimize first 2 views using reprojection error
+	var viewA = workOrderedViews[0];
+	var viewB = workOrderedViews[1];
+
+	var pointSpaceA = viewA.pointSpace();
+	var points2DA = pointSpaceA.toArray();
+	console.log(points2DA);
+	var points3DAB = [];
+	for(var i=0; i<points2DA.length; ++i){
+		var point2DA = points2DA[i];
+		var point3D = point2DA.point3D();
+		var point2DB = point3D.point2DForView(viewB);
+		if(point2DB != null){
+			points3DAB.push(point3D);
+		}
+	}
+	//var points3DA = viewA.points3D();
+
+	console.log(points3DAB);
+	/*
+	get all 3D points that the 2 views have in common
+	iterate:
+		- estimate 3D point positions using pairwise view R
+		- iterate: [keep at least 100 points, stop when R error difference goes below threshold, stop when iteration count > 10]
+			- throw out worst 3D points based on:
+				- R 2 sigma
+				- F 2 sigma
+			- nonlinear optimize points using R error
+	=> have a good R between pairs
+	*/
+
+// add a new view to list & optimize addition
+	/*
+		estimate new view absolute transform based on original transforms:
+			- for each prev/existing view:
+				- calculate OLD relative transform
+				- estimate relative scale change of prev view OLD relative & new relative 
+				- scale the translation part of relative transform based on new/old scale
+				- append relative transform to new absolute location
+			- average N absolute views (TODO: use a relative error percentage)
+				- can do independently/separately: scale, translation, rotation
+				- can do all together?
+			- set new absolute view transform
+		optimize new view orientation:
+			iterate:
+				- 
+	*/
+
+
+// TODO: TRY add third view & optimize first 3 views randomly using location metrics ???
+
+// 
+
+	throw "get this working with reprojection error first"
+
+/*
+- for each new view:
+	- set new location based on original offsets + new relative changes
+		- get overall new scale difference [survey baseline distances of all SET views]
+		- get expected position location from each view
+		- get expected rotation location from each view
+		=> average everything
+		=> set value
+	- optimize via: reprojection error
+	- optimize via: 3D (surface) distance error
+	- optimize via: 3D (local) rotation angle error
+
+	- for each optimization:
+		- find & throw (or ignore) outliers (new OR? existing points?)
+		- try different variations of the metrics
+			- squared v sqrt
+			- neighborhood averaging
+			- other averaging
+			...
+*/
+
+	/*
+	- 2D surface distance
+		- maybe averaging a few 3D points ?
+	- 3D normal 1D angle distance
+	- 3D rotation 3D axis distance
+	*/
+
+
+/*
+
+- are points completely separate?
+	=> YES
+- need original graph info as views can drift
+	- the new position is some offset of old position & new adjacent view locations
+- need ordered list of views to optimize on
+
+
+
+
+
+*/
+
+throw "sequentiallyOptimizeViews";
+}
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Stereopsis.World.prototype.solveOptimizeSingleViewReprojection = function(viewSolve, pairInfo, loopIterations){
+
+	throw "is this known to work? - solveOptimizeSingleViewReprojection"
 	loopIterations = Code.valueOrDefault(loopIterations, 10);
 
 	var world = this;

@@ -542,7 +542,6 @@ Canvas.prototype.toDataURL = function(){
 Canvas.prototype.getAsImage = function(x,y,w,h){
 // what about webGL context durrrrr
 	var image = new Image();
-	// copy canvas image data to temp canvas
 	image.src = this._canvas.toDataURL.call(this._canvas,arguments);
 	return image;
 }

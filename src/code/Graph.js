@@ -2088,6 +2088,87 @@ Graph.prototype.minPath = function(source,target){
 Graph._ufHashing = function(obj){
 	return obj.id()+"";
 }
+
+Graph.prototype.mergeVertexes = function(vertexA,vertexB, combineVertexFxn, combineEdgeFxn){
+	// edge must exist
+	var edge = vertexA.edge(vertexB)
+	if(!edge){
+		throw "no shared edge to retract";
+	}
+	var combinedVertex = this.addVertex();
+	var edgesA = vertexA.edges();
+	var edgesB = vertexB.edges();
+	// combine all common edges
+	var edgesCommon = [];
+	var edgesSingle = [];
+	var edgesShared = [];
+	// console.log(edgesA);
+	// console.log(edgesB);
+	for(var i=0; i<edgesA.length; ++i){
+		var edgeA = edgesA[i];
+		var oppoA = edgeA.opposite(vertexA);
+		if(oppoA == vertexB){
+			edgesShared.push(edgeA);
+			continue;
+		}
+		var edgeB = oppoA.edge(vertexB);
+		if(edgeB){
+			console.log("common A 1 - "+oppoA.data()[0].id()+" - "+vertexA.data()[0].id());
+			console.log("common A 2 - "+oppoA.data()[0].id()+" - "+vertexB.data()[0].id());
+			edgesCommon.push([edgeA,edgeB, oppoA]);
+		}else{
+			//console.log(oppoA.data());
+			console.log("single A - "+oppoA.data()[0].id()+" - "+vertexA.data()[0].id());
+			edgesSingle.push([edgeA,oppoA]);
+		}
+	}
+	for(var i=0; i<edgesB.length; ++i){
+		var edgeB = edgesB[i];
+		var oppoB = edgeB.opposite(vertexB);
+		if(oppoB == vertexA){
+			continue;
+		}
+		var edgeA = oppoB.edge(vertexA);
+		if(!edgeA){
+			console.log("single A - "+oppoB.data()[0].id()+" - "+vertexB.data()[0].id());
+			edgesSingle.push([edgeB,oppoB]);
+		} // else already found in loop 1
+	}
+	// combine common edges:
+	console.log("common edges: "+edgesCommon.length);
+	console.log("single edges: "+edgesSingle.length);
+	for(var i=0; i<edgesCommon.length; ++i){
+		var common = edgesCommon[i];
+		var edgeA = common[0];
+		var edgeB = common[1];
+		var opposite = common[2];
+		if(combineEdgeFxn){
+			var edge = combineEdgeFxn(combinedVertex,opposite, edgeA,edgeB);
+		}else{
+			var weight = edgeA.weight() + edgeB.weight();
+			var edge = this.addEdgeDuplex(combinedVertex,opposite, weight);
+		}
+	}
+	// create new edges:
+	for(var i=0; i<edgesSingle.length; ++i){
+		var old = edgesSingle[i];
+		var e = old[0];
+		var v = old[1];
+		var w = e.weight()
+		var edge = this.addEdgeDuplex(combinedVertex,v, w);
+	}
+	if(combineVertexFxn){
+		combineVertexFxn(combinedVertex, vertexA,vertexB);
+	}
+	//vertexA.removedEdges();
+	//vertexB.removedEdges();
+	this.removeVertex(vertexA);
+	this.removeVertex(vertexB);
+
+	//throw "mergeVertexes";
+	return combinedVertex;
+}
+
 Graph.prototype.minSpanningTree = function(){ // minimum spanning tree MST -- assumes bidirectional edges
 	var edges = Code.copyArray(this.edges());
 	var keep = [];

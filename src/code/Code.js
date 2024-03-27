@@ -3455,6 +3455,29 @@ Code.discreteSubdivision = function(fxn, args, x, ranges, subdivisions){
 }
 
 
+// do gradient descent & neighborhood serch
+Code.gradientDescentNeighborhood = function(costFxn, costArgs){
+
+/*
+	get a neighborhood size
+	do a neighborhood search (rectilinear or spherical)
+	get cost at all neighborhood points
+	interpolate N dimensional best point next starting location
+		=> ?
+	when picking new location costFxn(true);
+*/
+	throw "gradientDescentNeighborhood";
+
+
+	return {"x":bestX, "cost":bestCost};
+}
+Code._GDN_cost = function(isUpdate){
+	if(isUpdate){
+		/// ...
+	}
+	throw "example";
+}
+
 Code.gradientDescent = function(fxn, args, x, dx, iter, diff, epsilon, lambda){
 	var i, j, k, c;
 	var sizeX = x.length;

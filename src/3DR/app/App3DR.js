@@ -71,7 +71,7 @@ App3DR.prototype.continueStartup = function(){
 // var modeImageEdit = true;
 var modeImageEdit = false;
 
-// var modeImageUpload = true; //  uploadImageTypeCamera
+//var modeImageUpload = true; //  uploadImageTypeCamera
 var modeImageUpload = false;
 	// var modeImageUploadCamera = true;
 	var modeImageUploadCamera = false;
@@ -81,7 +81,7 @@ var modeImageCompare = false;
 
 
 var modeModelReconstruction = false;
-//var modeModelReconstruction = true;
+// var modeModelReconstruction = true;
 
 
 
@@ -7744,10 +7744,13 @@ console.log("checkPerformNextTask");
 
 // R3D._testOptimizeGeometryProjection2D();
 // R3D._testOptimizeGeometryProjection3D();
-R3D._testMatchViewGeometry3D();
+
+// 2023 - 11 - 00
+//R3D._testMatchViewGeometry2D();
+//R3D._testMatchViewGeometry3D();
 
 // Matrix.testQR();
-throw "..."
+//throw "..."
 // Code.testPointMatches();
 // Code.testLM();
 
@@ -7839,7 +7842,7 @@ throw "..."
 		return;
 	}
 
-// throw "start dense";
+throw "start dense";
 	if(!project.checkHasDenseStarted()){
 		project.calculateDensePairPutatives();
 		return;
@@ -7849,16 +7852,24 @@ throw "..."
 		project.iterateDenseProcess();
 		return;
 	}
+	/*
 throw ">start bundle";
 	if(!project.checkHasBundleStarted()){
 		project.initializeBundleGroupsFromDense();
 		return;
 	}
-// throw "> continue bundle";
+throw "> continue bundle";
 	if(!project.checkHasBundleEnded()){
 		project.iterateBundleProcess(); // sets up dense groups
 		return;
 	}
+	*/
+
+throw "> do new bundle groups";
+
+throw "> do global";
+
+
 // throw ">start surface"; // copy point files & create surface.yaml
 	if(!project.checkHasSurfaceStarted()){
 		project.initializeSurfaceFromBundle();
@@ -10817,7 +10828,7 @@ if(isDense){
 		}
 //???
 		if(bundleSequentialFile!==null){
-			// throw "bundleSequentialFile - iterate on sequential file"
+			throw "bundleSequentialFile - iterate on sequential file"
 			var filename = "" + (isDense ? "dense" : "sparse") + "/" + bundleSequentialFile;
 			project._iterateGraphSequential(sourceData, sourceFilename, filename);
 			return;
@@ -10830,6 +10841,7 @@ if(isDense){
 // throw "bundle things?"
 		if(bundleFullIndex>=graphPairs.length){ // done loading all pairs into track full file
 			console.log("bundle adjust full file ...");
+throw ("bundle adjust full file ...");
 			// - bundle-adjust
 			var fullBundlePath = Code.appendToPath(basePath,"tracks",bundleFullFile);
 			var fullData = null;
@@ -11159,7 +11171,7 @@ console.log(sourceData);
 				// console.log(info);
 
 
-
+throw "before solveOptimizeSequential ?"
 var info = world.solveOptimizeSequential(pairInfo);
 console.log(info);
 
@@ -11222,8 +11234,10 @@ throw "before save optimizing full track full ..............";
 			project.loadDataFromFile(fullBundlePath, loadBundleComplete);
 			return;
 		}
+// throw "next ... bundle ?";
 		// throw "B";
 		if(bundleFullFile){ // load current file:
+throw "bundleFullFile == true";
 			var fullBundlePath = Code.appendToPath(basePath,"tracks",bundleFullFile);
 			var fullData = null;
 			var pairData = null;
@@ -11422,9 +11436,9 @@ console.log(allCameras);
 
 			return;
 		}
-
+// throw "RICHIE - here ba 1";
 		if(graphGroups.length==bundleGroupIndex){ // combine groups to single graph using skeleton view's offset as origin
-
+throw "skeleton ?"
 			// helper
 			var pairIDFromViewIDs = function(a,b){
 				return a<b ? a+"-"+b : b+"-"+a;
@@ -11490,6 +11504,7 @@ console.log("just set to identity?")
 			viewIDToTransformSkeleton[viewID] = absolute;
 			skeletonLookup[viewID] = 1;
 		}
+		throw "RICHIE - here ba 2";
 			// skeleton pair lookup
 			var pairIDToPairSkeleton = {};
 			for(var i=0; i<skeletonPairs.length; ++i){
@@ -11896,6 +11911,7 @@ console.log(fullBundlePath);
 // console.log(graphGroups.length,loadGroupIndex)
 // throw "here ?"
 		if(graphGroups.length==loadGroupIndex){
+// throw "graphGroups.length==loadGroupIndex";
 console.log("special case? - should save view transforms to track full yaml");
 			console.log(bundleGroupIndex);
 			var graphGroup = graphGroups[bundleGroupIndex];
@@ -11909,7 +11925,7 @@ console.log("special case? - should save view transforms to track full yaml");
 			var baTrackFileLoadComplete = function(data){
 				console.log("baTrackFileLoadComplete");
 				console.log(data);
-
+// throw "track file load complete"
 				// var points = data["points"];
 				// var lookup = {};
 				// for(var i=0; i<points.length; ++i){
@@ -11965,7 +11981,7 @@ maxIterationsBA = 1;
 				console.log(baOptimizations);
 				var nextViewBA = baOptimizations.length>0 ? baOptimizations[0] : null; // pre-sorted on nulls
 				console.log(nextViewBA);
-
+// throw "..."
 				// if the next error is very low, or max iterations reached => done
 				var isDone = false;
 				// var deltaErrorR = nextViewBA ? nextViewBA["deltaErrorR"] : 0;
@@ -11991,7 +12007,7 @@ maxIterationsBA = 1;
 
 				if(isDone){
 					console.log("track group isDone");
-// throw "before handle done tracks - skeleton - track_0";
+throw "before handle done tracks - skeleton - track_0";
 					graphData["bundleGroupIndex"] = bundleGroupIndex + 1;
 					// VIEWS
 					var graphTransforms = [];
@@ -12023,12 +12039,12 @@ console.log(baTransforms);
 					graphGroup["transforms"] = graphTransforms;
 					graphGroup["pairs"] = graphPairs;
 console.log(graphGroup);
-// throw "are there pairs & transforms?"
+throw "are there pairs & transforms?"
 					var savedGraphComplete = function(){
 						console.log("savedGraphComplete: "+graphFile);
 						project._taskDoneCheckReloadURL();
 					}
-// throw "before save track graph end summary"
+throw "before save track graph end summary"
 					project.saveFileFromData(graphData, graphFile, savedGraphComplete);
 					return;
 				} // optimizing a single track file:
@@ -12058,6 +12074,9 @@ console.log(graphGroup);
 				console.log(WORLDVIEWS);
 				var WORLDVIEWSLOOKUP = project.createWorldViewLookup(world);
 				console.log(WORLDVIEWSLOOKUP);
+
+
+// throw "this is where bundle adjustment starts optimizing things .... in a world context"
 
 // throw "here B";
 				// world.setResolutionProcessingModeNonVisual();
@@ -12101,16 +12120,29 @@ console.log(graphGroup);
 				// var maxIts = 1;
 				// var maxIts = 5;
 				var maxIts = 3;
+
+// var str = world.toYAMLString();
+// console.log(str);
+// throw "optimizing a single view doesn't work"
+
+
+console.log(pairInfo);
+console.log(views);
+
+world.sequentiallyOptimizeViews();
+
+/*
 				for(var its=0; its<maxIts; ++its){
 
 					var views = world.toViewArray();
 					for(var v=0; v<views.length; ++v){
 						console.log(" ...................................................................................................... "+v)
 						var view = views[v];
-						world.solveOptimizeSingleViewReprojection(view, pairInfo);
+						// world.solveOptimizeSingleViewReprojection(view, pairInfo);
+
 					}
 				}
-
+*/
 
 
 				// var info = world.solveOptimizeSingleViewReprojection(worldView, pairInfo);
@@ -14222,8 +14254,9 @@ world.debugCheckPairPointMatchCounts();
 			var str = world.toYAMLString();
 			console.log(str);
 
+console.log("world.showForwardBackwardPair() ---  full R count");
 // console.log(result);
-world.showForwardBackwardPair();
+// world.showForwardBackwardPair();
 // throw "BEFORE NEXT R -> T"
 
 
@@ -14545,6 +14578,7 @@ if(idA===undefined || idB===undefined){
 			);
 	}
 	var fxnTripleComplete = function(scales){
+		console.log("fxnTripleComplete");
 		// throw "now ... fxnTripleComplete"
 		completeFxn.call(completeCxt,scales);
 	}

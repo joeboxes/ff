@@ -1342,6 +1342,471 @@ var tz = P.get(2,3);
 	*/
 }
 
+R3D._testMatchViewGeometry2D = function(){
+console.log("R3D._testMatchViewGeometry2D");
+
+
+
+// SIMPLE GEOMETRY:
+
+	// create N points in circular location
+
+	var pointCount = 100;
+	var points2D = [];
+	var circleRadius = 10;
+	var center = new V2D(0,0);
+	for(var i=0; i<pointCount; ++i){
+		var r = circleRadius * Math.sqrt(Math.random());
+		var theta = Math.random()*2*Math.PI;
+		var x = center.x + r * Math.cos(theta);
+		var y = center.y + r * Math.sin(theta);
+		var p = new V2D(x,y);
+		points2D.push(p);
+	}
+	console.log(points2D);
+	// add global error in rotation & translation
+	//var globalTranslation = new V2D(0.0,0.0);
+	var globalTranslation = new V2D(1.0,2.0);
+	//var globalTranslation = new V2D(2.0,3.0);
+	
+	// var globalRotation = Code.radians(0.0);
+	var globalRotation = Code.radians(25.0);
+	
+	var globalMatrixAB = new Matrix(3,3);
+	globalMatrixAB.identity();
+	globalMatrixAB = Matrix.transform2DRotate(globalMatrixAB, globalRotation);
+	globalMatrixAB = Matrix.transform2DTranslate(globalMatrixAB, globalTranslation);
+	console.log(globalMatrixAB+"");
+
+	// add local error in rotation & translation
+	//var localErrorTranslation = 0.1;
+	//var localErrorRotation = 0.1;
+	//var localErrorLocation = 0.0;
+	//var localErrorLocation = 0.001;
+	// var localErrorLocation = 0.01;
+
+	
+	var localErrorLocation = 0.1;
+	// var localErrorLocation = 1.0;
+	// var localErrorLocation = 10.0;
+
+	//var localErrorOutlierPercentCount = 0.10; //  % of population 0.1-0.5
+	var localErrorOutlierPercentCount = 0.50; 
+	var localErrorOutlierPercentDistance = 100.0; // n x localErrorLocation
+	var localErrorOutlierDistance = localErrorOutlierPercentDistance * localErrorLocation;
+	var localErrorOutlierCount = Math.ceil(localErrorOutlierPercentCount * pointCount);
+
+	var samples2DA = [];
+	var samples2DB = [];
+	for(var i=0; i<pointCount; ++i){
+		var point = points2D[i];
+		var pointA = point.copy();
+			pointA.x += (Math.random()-0.5)*localErrorLocation;
+			pointA.y += (Math.random()-0.5)*localErrorLocation;
+			var pointB = globalMatrixAB.multV2DtoV2D(point);
+			pointB.x += (Math.random()-0.5)*localErrorLocation;
+			pointB.y += (Math.random()-0.5)*localErrorLocation;
+			// console.log(pointB.x - pointA.x, pointB.y - pointA.y);
+		samples2DA.push(pointA);
+		samples2DB.push(pointB);
+	}
+
+	// add outliers:
+	// THIS HAS REPEATS
+	console.log("NUMBER OF OUTLIERS: "+localErrorOutlierCount+" / "+pointCount);
+	for(var i=0; i<localErrorOutlierCount; ++i){
+		var index = Code.randomIndexArray(samples2DB);
+		var pointB = samples2DB[index];
+		pointB.x += (Math.random()-0.5)*localErrorOutlierDistance;
+		pointB.y += (Math.random()-0.5)*localErrorOutlierDistance;
+	}
+
+	//console.log(samples2DA);
+	//console.log(samples2DB);
+
+// SETUP DISPLAY
+var displayScale = 30.0;
+var stage = GLOBALSTAGE;
+var display = new DO();
+	//display.matrix().scale(1, -1);
+	display.matrix().translate(400, 400);
+stage.addChild(display);
+// DRAW POINTS
+var d = display;
+for(var i=0; i<points2D.length; ++i){
+	var p = points2D[i];
+	var a = samples2DA[i];
+	var b = samples2DB[i];
+	// console.log(a+" -> "+b);
+	// p
+	d.graphics().setFill(0x99009900);
+	d.graphics().beginPath();
+	d.graphics().drawCircle(p.x*displayScale,p.y*displayScale, 3.0);
+	d.graphics().endPath();
+	d.graphics().fill();
+	// a
+	d.graphics().setFill(0x99990000);
+	d.graphics().beginPath();
+	d.graphics().drawCircle(a.x*displayScale,a.y*displayScale, 3.0);
+	d.graphics().endPath();
+	d.graphics().fill();
+	// b
+	d.graphics().setFill(0x99000099);
+	d.graphics().beginPath();
+	d.graphics().drawCircle(b.x*displayScale,b.y*displayScale, 3.0);
+	d.graphics().endPath();
+	d.graphics().fill();
+
+	// A & B
+	d.graphics().setLine(1.0,0x99CC00CC);
+	d.graphics().beginPath();
+	d.graphics().moveTo(p.x*displayScale,p.y*displayScale);
+	d.graphics().lineTo(b.x*displayScale,b.y*displayScale);
+	d.graphics().moveTo(p.x*displayScale,p.y*displayScale);
+	d.graphics().lineTo(a.x*displayScale,a.y*displayScale);
+	d.graphics().endPath();
+	d.graphics().strokeLine();
+	/*
+	d.graphics().beginPath();
+	//d.graphics().setFill(0x0000FF00);
+	d.graphics().moveTo(currX,0);
+	//d.graphics().drawEllipse(pX,pY, rad,rad, 0.0);
+	d.graphics().lineTo(currX+camSize.x,0);
+	d.graphics().lineTo(currX+camSize.x,camSize.y);
+	d.graphics().lineTo(currX,camSize.y);
+	d.graphics().endPath();
+	*/
+}
+
+// put into spaces
+var toPoint = function(entry){
+	return entry;
+}
+
+var infoA = V2D.infoArray(samples2DA);
+var infoB = V2D.infoArray(samples2DB);
+
+var space2DA = new QuadTree(toPoint, infoA["min"], infoA["max"]);
+space2DA.insertObjects(samples2DA);
+
+var space2DB = new QuadTree(toPoint, infoB["min"], infoB["max"]);
+space2DB.insertObjects(samples2DB);
+
+
+for(var i=0; i<samples2DA.length; ++i){
+	var a = samples2DA[i];
+	a._id = i;
+	var b = samples2DB[i];
+	b._id = i;
+}
+
+
+
+
+// CLOSEST POINT IS LIKELY TO HAVE LOCAL AVERAGE ERROR
+// SHOULD USE RANDOM POINT NOT TOO CLOSE OR FAR .. AT EDGE OF LOCAL NEIGHBORHOOD ?
+
+
+
+// TODO: this should be ~ 10% of SIGMA, not of full size
+var neighborhoodPercent = 0.1; // 1% to 10% ?
+var neighborhoodASize = infoA["size"].length() * neighborhoodPercent;
+
+var pairsA = {};
+var pairsB = {};
+var angles = [];
+var degrees = [];
+// find a global rotation 2D
+for(var i=0; i<samples2DA.length; ++i){
+	var a = samples2DA[i];
+
+
+	//var closestA = space2DA.kNN(a,2);
+	//closestA = closestA[1];
+
+
+	// pick a random point at about a random distance in the neighborhood
+
+	var r = new V2D(1,0);
+	var angle = Math.random() * 2 * Math.PI;
+	r.rotate(angle);
+	r.scale(neighborhoodASize); // TODO: should this range on ~ 0.1-2.0 ?
+	// console.log(r);
+	var closestA = space2DA.kNN(r,2);
+	if(closestA[0] != a){
+		closestA = closestA[0];
+	}else{
+		closestA = closestA[1];
+	}
+	
+
+
+	var pairID = Math.min(a._id,closestA._id)+"-"+Math.max(a._id,closestA._id);
+	var matchB = samples2DB[a._id];
+	var otherB = samples2DB[closestA._id];
+
+	var vectorA = V2D.sub(closestA,a);
+	var vectorB = V2D.sub(otherB,matchB);
+	//console.log(vectorA,vectorB);
+	var angle = V2D.angle(vectorA,vectorB);
+	//console.log(angle);
+	angles.push(angle);
+	degrees.push( Code.degrees(angle) );
+	
+
+	pairsA[pairID] = [a, closestA, matchB, otherB, angle];
+
+
+/*
+	var b = samples2DB[i];
+	var closestB = space2DB.kNN(b,2);
+	closestB = closestB[1];
+*/
+}
+
+console.log(angles);
+
+degrees = degrees.sort(function(a,b){ return a<b? -1 : 1; });
+
+Code.printMatlabArray(degrees, "a");
+
+// pick best angle:
+
+var repeatDropOutsideRange = function(angles, stdMax, maxCount){
+	if(maxCount===undefined || maxCount===null){
+		maxCount = 3;
+	}
+	console.log("START: "+angles.length);
+	var newAngles = null;
+	for(var i=0; i<maxCount; ++i){
+		newAngles = dropOutsideRange(angles, stdMax);
+		console.log(i+" NEXT: "+newAngles.length);
+		if(newAngles.length==angles.length){
+			break;
+		}
+		angles = newAngles;
+	}
+	return newAngles;
+}
+
+var dropOutsideRange = function(angles, stdMax){
+	if(!stdMax){
+		stdMax = 2.0; // 2 std = 95%
+	}
+	var avg = Code.averageAngles(angles);
+	var std = Code.stdDevAngles(angles, avg);
+console.log( "   " + Code.degrees(avg) +" +/- "+Code.degrees(std) );
+	var range = stdMax*std;
+if(range>Math.PI){
+	console.log("too variable");
+	return Code.copyArray(angles);
+}
+	var min = Code.angleZeroTwoPi(avg - range);
+	var max = Code.angleZeroTwoPi(avg + range);
+	var newList = [];
+	//console.log("RANGE:",range, min,max);
+	for(var i=0; i<angles.length; ++i){
+		var angle = angles[i];
+		if(Code.isAngleInside(min,max, angle)){
+			newList.push(angle);
+		}
+	}
+	return newList;
+
+}
+/*
+var averageAngle = Code.averageAngles(angles);
+console.log( Code.degrees(averageAngle) );
+var stdAngle = Code.stdDevAngles(angles, averageAngle);
+console.log( Code.degrees(stdAngle) );
+*/
+
+// continually drop outside:
+
+// var result = dropOutsideRange(angles, 2.0);
+// var result = repeatDropOutsideRange(angles, 2.0);
+// var result = repeatDropOutsideRange(angles, 1.0, 10);
+var result = repeatDropOutsideRange(angles, 1.5, 25);
+// var result = repeatDropOutsideRange(angles, 2.0, 25);
+console.log(result);
+
+// apply rotation move b toward a;
+var totalRotation = Code.averageAngles(result);
+var centroidA = V2D.average(samples2DA);
+var centroidB = V2D.average(samples2DB);
+console.log("centroidB: "+centroidB);
+for(var i=0; i<samples2DB.length; ++i){
+	var b = samples2DB[i];
+	b.x -= centroidB.x;
+	b.y -= centroidB.y;
+	b.rotate(-totalRotation);
+	b.x += centroidB.x;
+	b.y += centroidB.y;
+}
+
+
+//throw centroidB
+
+
+
+
+// Code.averageAngleVector2D = function(vectors, percents){ 
+// Code.stdDevAngles = function(list, mean){
+// Code.averageAngles = function(angles, percents){
+
+
+
+
+	//var pairID = a._id+"-"+b._id;
+
+
+
+
+// find a global translation 2D
+var translations = [];
+var txs = [];
+var tys = [];
+var tds = [];
+for(var i=0; i<samples2DA.length; ++i){
+	var a = samples2DA[i];
+	var b = samples2DB[i];
+	var d = V2D.distance(a,b);
+	var tx = b.x-a.x;
+	var ty = b.y-a.y;
+	//translations.push(tx,ty,d);
+	//console.log(tx,ty)
+	txs.push(tx);
+	tys.push(ty);
+	tds.push(d);
+}
+
+console.log(txs);
+console.log(tys);
+//throw "?";
+//var meanTx = Code.averageNumbers(txs);
+//var meanTy = Code.averageNumbers(tys);
+
+
+Code.printMatlabArray(txs, "x");
+
+
+var dropOutsideRangeNumbers = function(numbers, stdMax){
+	if(!stdMax){
+		stdMax = 2.0; // 2 std = 95%
+	}
+	var avg = Code.averageNumbers(numbers);
+	var std = Code.stdDev(numbers, avg);
+console.log( "   " + (avg) +" +/- "+(std) );
+	var range = stdMax*std;
+	var min = avg - range;
+	var max = avg + range;
+	var newList = [];
+	for(var i=0; i<numbers.length; ++i){
+		var number = numbers[i];
+		if(min<=number && number<=max){
+			newList.push(number);
+		}
+	}
+	return newList;
+
+}
+
+
+var repeatDropOutsideRangeNumbers = function(numbers, stdMax, maxCount){
+	if(maxCount===undefined || maxCount===null){
+		maxCount = 3;
+	}
+	console.log("START: "+numbers.length);
+	var newNumbers = null;
+	for(var i=0; i<maxCount; ++i){
+		newNumbers = dropOutsideRangeNumbers(numbers, stdMax);
+		console.log(i+" NEXT: "+newNumbers.length);
+		if(newNumbers.length==numbers.length){
+			break;
+		}
+		numbers = newNumbers;
+	}
+	return newNumbers;
+}
+
+
+
+var resultTx = repeatDropOutsideRangeNumbers(txs, 2.0, 25);
+var resultTy = repeatDropOutsideRangeNumbers(tys, 2.0, 25);
+console.log(resultTx);
+console.log(resultTy);
+var meanX = Code.averageNumbers(resultTx);
+var meanY = Code.averageNumbers(resultTy);
+console.log(meanX);
+console.log(meanY);
+
+
+
+var d = display;
+for(var i=0; i<points2D.length; ++i){
+	//var p = points2D[i];
+	//var a = samples2DA[i];
+	var b = samples2DB[i];
+	b.x -= meanX;
+	b.y -= meanY;
+	// console.log(a+" -> "+b);
+	// p
+	//d.graphics().setFill(0x99009900);
+	d.graphics().setLine(2.0, 0x99000099);
+	d.graphics().beginPath();
+	d.graphics().drawCircle(b.x*displayScale,b.y*displayScale, 9.0);
+	d.graphics().endPath();
+	d.graphics().strokeLine();
+	//d.graphics().fill();
+}
+
+
+
+
+
+
+//console.log( Code.stdDev(txs, meanTx) );
+//console.log( Code.stdDev(tys, meanTy) );
+
+
+//console.log(translations);
+
+
+
+
+/*
+	find best pairs of points to get vectors:
+		for each point in A: grab it's nearest neighbor
+		for each point in B: grab it's nearest neighbor
+		remove pair duplicates
+		get corresponding rotation angle
+		plot angle
+		get top ~ 10% of population (min 3, max 10)
+		get average rotation
+	
+
+*/
+
+// .... CAMERAS / VIEWS ?
+
+
+
+
+// create N points in circular location
+
+// create 3(+?) viewpoints @ known 'random' transformation
+
+// 
+
+
+
+// apply error to each points x/y
+
+
+
+throw "..."
+}
+
 R3D._testMatchViewGeometry3D = function(){
 
 

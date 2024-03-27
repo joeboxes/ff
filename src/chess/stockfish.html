@@ -1,0 +1,51 @@
+<html>
+<head>
+<title>Stockfish</title>
+<!-- <script src="../code/FF.js"></script> -->
+<!-- <script src="./stockfish.js"></script>  -->
+<script src="./stockfish.js"></script> 
+</head>
+<script type="text/javascript">
+function pageLoadedFxn(){
+	console.log("page loaded");
+
+
+
+	
+
+	/*
+	stockfish.js:4 Uncaught (in promise) RuntimeError: abort(TypeError: WebAssembly.instantiate(): Import #5 module="global": module is not an object or function). Build with -s ASSERTIONS=1 for more info.
+    at abort (stockfish.js:4:18221)
+    at stockfish.js:4:19976
+	*/
+/*
+	// B
+	console.log(STOCKFISH);
+	var stockfish = STOCKFISH();
+	stockfish.onmessage = function(event) {
+	    //NOTE: Web Workers wrap the response in an object.
+	    console.log(event.data ? event.data : event);
+	};
+	
+	stockfish.postMessage("go depth 15");
+	*/
+	
+	// A
+	var wasmSupported = typeof WebAssembly === 'object' && WebAssembly.validate(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+	//var wasmSupported = false;
+	var stockfish = new Worker(wasmSupported ? 'stockfish.wasm.js' : 'stockfish.js');
+
+	stockfish.addEventListener('message', function (e) {
+	  console.log(e.data);
+	});
+
+	stockfish.postMessage('uci');
+
+}
+function testOpen(){
+	
+}
+</script>
+<body onload="pageLoadedFxn();">
+</body>
+</html>

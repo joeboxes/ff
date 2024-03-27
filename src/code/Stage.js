@@ -281,6 +281,9 @@ Stage.prototype._toImage = function(wid,hei, type, onloadFxn){
 	var image = new Image();
 	image.width = wid;
 	image.height = hei;
+	if(type==null){
+		type = Canvas.IMAGE_TYPE_PNG;
+	}
 	var url = this._toDataURL(type);
 	image.onload = function(e){
 		if(onloadFxn){

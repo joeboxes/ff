@@ -1,0 +1,101 @@
+<html>
+<head>
+<title>Textures</title>
+<script src="../code/FF.js"></script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript">
+function pageLoadedFxn(){
+	var ff = new FF("../code/",defaultClassesLoadedFxn,defaultClassesProgressFxn);
+}
+function defaultClassesProgressFxn(o){}
+function defaultClassesLoadedFxn(){
+	scriptLoader = new ScriptLoader("./",[],this,customClassesLoadedFxn,customClassesProgressFxn);
+	scriptLoader.load();
+}
+function customClassesProgressFxn(o){}
+function customClassesLoadedFxn(){
+	var a = new App();
+}
+
+
+
+
+function App(){
+	this.handleLoaded();
+}
+App.prototype.handleLoaded = function(){
+	this._canvas = new Canvas(null,600,400,Canvas.STAGE_FIT_FILL);
+	this._stage = new Stage(this._canvas, 1000/20);
+	this._keyboard = new Keyboard();
+	this._root = new DO();
+	this._stage.addChild(this._root);
+// this._root.matrix().translate(100,400);
+	this.addListeners();
+	this.drawDiagram();
+}
+App.prototype.addListeners = function(){
+	this._canvas.addListeners();
+	this._stage.addListeners();
+	this._keyboard.addListeners();
+	this._stage.start();
+	GLOBALSTAGE = this._stage;
+}
+
+App.prototype.drawDiagram = function(){
+		console.log("drawDiagram");
+
+		var d;
+
+		/*
+		// faded green
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		//d.graphics().setLine(null);
+		//d.graphics().setLinearFill(0,0, 100,100,  0.0,0xFFFF0000, 1.0,0xFF0000FF);
+		//d.graphics().setFill(0xFFFF0000);
+		d.graphics().setLinearFill(0,0, 0,100, [0.0,1.0], [0xFFCCFFAA, 0x00DDFFCC]);
+		d.graphics().drawRect(0,0, 100,100);
+		d.graphics().endPath();
+		d.graphics().fill();
+		//d.graphics().strokeLine();
+		//d.matrix().scale(1,-1);
+		//d.matrix().translate(100,100);
+		GLOBALSTAGE.addChild(d);
+		*/
+		
+		// menu
+		d = new DO();
+		d.graphics().clear();
+		d.graphics().beginPath();
+		d.graphics().setLine(2.0, 0xDD99BBDD);
+		//d.graphics().setLinearFill(0,0, 100,100,  0.0,0xFFFF0000, 1.0,0xFF0000FF);
+		//d.graphics().setFill(0xFFFF0000);
+		d.graphics().setLinearFill(0,0, 0,100, [0.0,1.0], [0xAA6699AA, 0xCC557799]);
+		d.graphics().drawRect(5,5, 90,90);
+		d.graphics().endPath();
+		d.graphics().fill();
+		d.graphics().strokeLine();
+		//d.matrix().scale(1,-1);
+		//d.matrix().translate(100,100);
+		GLOBALSTAGE.addChild(d);
+
+
+		this._stage.renderImage(100,100, d, null,null, function(event){
+			var image = event.target;
+			console.log(image);
+			Code.addChild(Code.getBody(),image);
+		});
+
+		//var image = this._canvas.getAsImage(0,0,300,300);
+		//var image = this._canvas.getImageData(0,0,300,300);
+		//console.log(image);
+		//Code.addChild(Code.getBody(),image);
+}
+
+
+</script>
+</head>
+<body onload="pageLoadedFxn();" style="border:0px;margin:0px;border:0px;">
+</body>
+</html>
