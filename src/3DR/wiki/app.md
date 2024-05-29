@@ -427,6 +427,67 @@ MISSING:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+
+
+NEXT TASK:
+	x print out list of sequential views
+	x load 3D points?
+	x refamiliarize w/ gradient descene & each variable
+	x as GD error reduces, epsilon should also reduce, how to do this?
+	- test case for needing to increase epsilon?
+		- noise?
+	- test GD on differently-scaled units - known problem
+
+	- optimize first pair
+	- start optimizing additional views:
+		- reprojection error
+		- 3D surface distance error 3+ pts [projected surface point]
+		- 3D surface rotation error 3+ pts [normal]
+		- 3D surface distance error 1+ pts [average location]
+		- 3D vector rotation error 2 pts [direction vector]
+
+
+	- heat-volume of camera extrinsic param error -> visualize in octave
+		- eg 3D translation 
+		- eg rotation
+
+
+- when to use skeleton v non-skeletion v groups?
+	- is this set to skeleton for now just for debugging purposes
+	- skeleton group needs to be broken up too for 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - visualize the error metrics in the volume of camera movement
 	- average reprojection error
 	- average surface-distance error
@@ -14400,7 +14461,7 @@ CHI-SQUARE DISTRIBUTIONS FOR ERROR:
 	0.25 * cellScore @ 4
 	...
 
-https://piazza-resources.s3.amazonaws.com/hz5ykuetdmr53k/i2c8h15sptx3kq/16.2_MOPS_Descriptor.pdf?AWSAccessKeyId=AKIAIEDNRLJ4AZKBW6HA&Expires=1519952044&Signature=ngbvKO9ykNMyu98oMKS4AgWucrg%3D
+github is stupid
 https://courses.cs.washington.edu/courses/cse576/13sp/projects/project1/artifacts/ykhlee/Report.htm
 	- 40x40 subsampled every 5th pixel
 		- low freq filtering

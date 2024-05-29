@@ -3479,100 +3479,125 @@ Code._GDN_cost = function(isUpdate){
 }
 
 Code.gradientDescent = function(fxn, args, x, dx, iter, diff, epsilon, lambda){
+	// if change of cost isn't going down, epsilon can be cut?
 	var i, j, k, c;
 	var sizeX = x.length;
-	// var epsilon = 1E-6;
 	epsilon = epsilon!==undefined && epsilon!==null ? epsilon : 1E-6;
-	var cost = fxn(args, x, false, -1); // current cost
+	var cost = fxn(args, x, false, -1); // current / starting cost
 	var currCost, nextCost;
 	var maxIterations = iter!=null ? iter : 50;
 	var minDifference = diff!=null ? diff : 1E-10;
 		// lambda = lambda!==undefined && lambda!==null ? lambda : 1.0/epsilon; // start at on par with 1.0
 		lambda = 1.0;
 		// lambda = lambda!==undefined && lambda!==null ? lambda : epsilon;
-	var scaler = 2.0; // smaller is more accurate, larger is quicker initially
+	var lambdaScaler = 2.0; // smaller is more accurate, larger is quicker initially
+
+	var epsilonScaler = 2.0;
+
 	var nextX = Code.newArrayZeros(sizeX);
 	var prevX = Code.copyArray(x); // local instance of x
 	var dy = Code.newArrayZeros(sizeX);
 	var tx = Code.newArrayZeros(sizeX);
-// console.log("epsilon: "+epsilon)
-	// TODO: individual epsilon for each variable
+
+	var sequentialLambdaDirection = 0;
+	var didReduceError = false;
+
+	// generate a dx if one isn't present input
 	if(!dx){
-// console.log("no dx")
 		dx = Code.newArrayZeros(sizeX);
 		for(i=0; i<sizeX; ++i){
 			if(Code.isArray(epsilon)){
-				// console.log("arr");
-				dx[i] = epsilon[i]; // input
+				dx[i] = epsilon[i]; // copy from input
 			}else{
-				// console.log("epsilon: "+epsilon);
-				dx[i] = epsilon;
+				dx[i] = epsilon; // uniform distance for all dx using epsilon
 			}
 		}
-	}/*else{
-		console.log(dx);
-		throw "got dx";
-	}*/
-// console.log(dx+"");
-// throw "?"
+	}
+
+	// repeat the parameter estimation as long as cost reduction continues
 	for(k=0; k<maxIterations; ++k){
-		// console.log("dx: "+dx+"  @  "+lambda+" = "+k);
+		// get cost in each +dx direction
 		for(i=0; i<sizeX; ++i){
 			Code.copyArray(tx,prevX);
 			tx[i] += dx[i];
-// console.log(tx);
-// console.log(tx[i]);
 			c = fxn(args, tx, false, i);
-if(Code.isNaN(c)){
-	console.log(c);
-	console.log(cost);
-	throw "cost?";
-}
 			dy[i] = c - cost;
 			tx[i] = 0;
 		}
 		// initial best guess:
 		for(i=0; i<sizeX; ++i){
-			nextX[i] = prevX[i] - lambda*dy[i];
-// if(Code.isNaN(nextX[i])){
-// 	console.log(prevX);
-// 	console.log(lambda);
-// 	console.log(dy);
-// 	console.log(dx);
-// 	throw "why?";
-// }
+			nextX[i] = prevX[i] - lambda*dy[i]/dx[i];
 		}
 		var newCost = fxn(args, nextX, false, -1);
-		// scale down lambda as necessary:
-		var iter = 10;
+
+// ???
+sequentialLambdaDirection = 0;
+		// scale down lambda to get a shorter distance vector and maybe not overshoot minima
+		var iter = 5;
 		while(newCost>=cost && iter>0){
-			lambda /= scaler;
+			sequentialLambdaDirection -= 1;
+			lambda /= lambdaScaler;
+			// best next guess
 			for(i=0; i<sizeX; ++i){
-				nextX[i] = prevX[i] - lambda*dy[i];
+				nextX[i] = prevX[i] - lambda*dy[i]/dx[i];
 			}
 			newCost = fxn(args, nextX, false, -1);
 			--iter;
 		}
+
+		if(sequentialLambdaDirection>=5){ // lambda very big scale, try larger epsilon
+			//console.log("++ "+dx[0]);
+			lambda /= lambdaScaler;
+			sequentialLambdaDirection = 0;
+			for(i=0; i<sizeX; ++i){
+				dx[i] *= epsilonScaler;
+			}
+		}else if(sequentialLambdaDirection<=-5){  // lambda very small, try larger epsilon
+			//console.log("-- "+dx[0]);
+			lambda *= lambdaScaler;
+			sequentialLambdaDirection = 0;
+			for(i=0; i<sizeX; ++i){
+				dx[i] /= epsilonScaler;
+			}
+		}
+
 		// should be good by now, following gradient
 		var diffCost = Math.abs(newCost-cost);
 		if(newCost<cost){
-			// console.log("NEW COST: "+newCost+" / "+cost);
+			didReduceError = true;
+			//console.log("NEW COST: "+newCost+" / "+cost);
+			console.log("good "+sequentialLambdaDirection);
 			cost = newCost;
 			var temp = prevX;
 			prevX = nextX;
 			nextX = temp;
 			fxn(args,prevX, true, -1);
-			lambda *= scaler;
-		}else{ // should not happen much
-			lambda /= scaler;
+			lambda *= lambdaScaler;
+			sequentialLambdaDirection += 1;
+		}else{ // lambda already scaled down before this
+			didReduceError = false;
+			console.log("bad : "+sequentialLambdaDirection);
+			lambda /= lambdaScaler;
+			sequentialLambdaDirection -= 1;
 		}
-		if(diffCost<minDifference){
+
+
+
+		if(lambda<1E-100){ // if(lambda==0){
+			console.log("lambda ~ 0"); //console.log("lambda = 0");
+			break;
+		}
+		if(lambda>1E100){
+			throw "what ? "+lambda;
+		}
+		if(diffCost<minDifference && didReduceError){
 			 // console.log("exit 1: "+diffCost+" "+dx+" #@ "+lambda+" ... "+dy);
+			console.log("exit 1: "+diffCost+" < "+minDifference);
 			break;
 		}
 	}
 	if(k==maxIterations){
-		// console.log("iteration quit");
+		console.log("iteration quit");
 	}
 	Code.copyArray(x,prevX);
 	return {"x":x,"cost":cost};
@@ -3581,6 +3606,7 @@ if(Code.isNaN(c)){
 
 
 Code.gradientDescent2 = function(fxn, args, x, iter, diff, eps){
+	throw "why gradientDescent2"
 	var epsilon = eps!==undefined && eps!==null ? eps : 1E-6;
 	var maxIterations = iter!=null ? iter : 100;
 	var minDifference = diff!=null ? diff : 1E-10;
@@ -3598,8 +3624,7 @@ Code.gradientDescent2 = function(fxn, args, x, iter, diff, eps){
 		dx[i] = epsilon;
 	}
 	for(var k=0; k<maxIterations; ++k){
-		// console.log("dx: "+dx+"  @  "+lambda);
-		// get change in cost for every variable
+		// get change in cost for every variable for small movement dx
 		for(var i=0; i<sizeX; ++i){
 			Code.copyArray(tx,prevX);
 			tx[i] += dx[i];
@@ -14793,6 +14818,36 @@ Code.fuzzyRound = function(a,b){
 }
 Code.fuzzyTruncate = function(a,b){
 	return (a>b)?a:0;
+}
+Code.repeatedDropArrayOutliers = function(errorsA, datasA, toLimitFxn, minimumCount, maxIterations){
+	minimumCount = minimumCount!==undefined ? minimumCount : 1;
+	maxIterations = maxIterations!==undefined ? maxIterations : 20;
+
+	for(var iteration=0; iteration<maxIterations; ++iteration){
+		var limit = toLimitFxn(errorsA,datasA);
+		console.log(" "+iteration+":  @  "+errorsA.length+" = "+limit);
+		var errorsB = [];
+		var datasB = [];
+		for(var i=0; i<errorsA.length; ++i){
+			var error = errorsA[i];
+			//console.log(error,limit);
+			if(error<limit){
+				errorsB.push(error);
+				datasB.push(datasA[i]);
+			}
+		}
+		if(errorsA.length==errorsB.length){
+			console.log(" => out early");
+			break;
+		}
+		if(errorsB.length<minimumCount){
+			console.log(" => out limit");
+			break;
+		}
+		errorsA = errorsB;
+		datasA = datasB;
+	}
+	return {"error":errorsA, "data":datasA};
 }
 Code.repeatedDropOutliers = function(inList, toValueFxn, toLimitFxn, minCount, maxIterations, updateFxn){
 	maxIterations = maxIterations!==undefined ? maxIterations : 20;

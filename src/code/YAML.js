@@ -467,6 +467,12 @@ YAML.prototype.writeNumber = function(name,value){
 	}
 }
 YAML.prototype.writeString = function(name,value){ // if intending to write null string, this messes up
+	// console.log("IN: "+name+" = "+value+" @ "+arguments.length);
+	// passing in an undefined -> this should never happen, only allow null
+	if(arguments.length==2 && value===undefined){
+		console.log("warning: calling writeString with an undefined value => casting to null")
+		value = null;
+	}
 	if(value===undefined){ value = name; name = null; }
 	// if it starts or ends with a space, quote, doublequote ... needs to be enclosed in double quotes
 	//value = value.replace(/\\n/g,"\\\\n")
@@ -481,11 +487,9 @@ YAML.prototype.writeString = function(name,value){ // if intending to write null
 		this._lines[this._lineNumber++] = this._prefixIndent()+YAML.ARRAY_SEPARATOR+YAML.SPACE+value;
 	}else{
 		if(name==null){ // this is do to some bug / bad usage
-			console.log(name,value);
-
 			name = value;
 			value = null;
-			throw "name is null but is object ?"
+			throw "YAML - name is null but is object ?"
 		}
 		this._lines[this._lineNumber++] = this._prefixIndent()+name+YAML.SEPARATOR+YAML.SPACE+value;
 	}

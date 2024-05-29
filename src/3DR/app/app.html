@@ -601,12 +601,58 @@ console.log(" "+i+" DIFF: "+orgDiff.length()+" @ "+Code.degrees(dirDiff));
 
 
 function classesLoadedFxn(){
-	var app = new App3DR();
+	//var app = new App3DR();
 	// return;
 
-
+	testGD();
 	// testAbs();
 	// testDistances();
+}
+
+function testGD(){ // test Gradient Descent
+	console.log("testGD");
+
+	var equation = function(x,y){
+		x = x-0.5;
+		y = y+0.25;
+		var value = x*x + y*y;
+		return value;
+	}
+
+
+	// try this with an angle & a distance vector
+
+	var gdMethod = function(args, x, isUpdate){
+		//console.log(x);
+		if(isUpdate){
+			//throw "isUpdate";
+		}
+		var value = equation(x[0],x[1]);
+		//console.log(value);
+		//console.log(x+" @ COST: "+value);
+		return value;
+	}
+
+	var args = [];
+
+	var x = [0,0];
+	//var epsilon = [0.1, 0.1]; // BIG -- good if bumpy
+	var epsilon = [0.001, 0.001];
+	//var epsilon = [1E-9, 1E-9]; // SMALL -- ok if smooth
+
+	//var maxIterations = 100;
+	var maxIterations = 200;
+
+	var limitCostDifference = 1E-30;
+
+	var result = Code.gradientDescent(gdMethod, args, x, epsilon, maxIterations, limitCostDifference);
+	console.log(result);
+
+	var x = result["x"];
+
+
+	console.log(x[0]+", "+x[1]);
+
 }
 
 function testDistances(){ // points in a 2D circle are distributed more out (linearly-perimeter) ; points in a 3D sphere are distriubuted more out (squared-area)

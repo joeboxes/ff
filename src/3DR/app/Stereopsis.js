@@ -7049,8 +7049,22 @@ console.log("MERGE VERTEXES ....................................................
 	return viewList;
 }
 Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
-	var workOrderedViews = this.show???();
+	var world = this;
+
+	// set first 2 default views [highest connectivity / lowest average sigma error (R,...)]
+	var workOrderedViews = this.sequentiallyViewsOrder();
 	console.log(workOrderedViews);
+	var viewOrderString = "";
+	for(var i=0; i<workOrderedViews.length; ++i){
+		var view = workOrderedViews[i];
+		viewOrderString = viewOrderString+" -> ("+i+") "+view.data();
+	}
+	console.log("VIEW ORDER: "+viewOrderString);
+	
+
+	var points3D = world.toPointArray();
+	console.log(points3D);
+	
 	// store original view absolute transforms
 	var originalAbsoluteViewTransforms = {};
 	for(var i=0; i<workOrderedViews.length; ++i){
@@ -7058,19 +7072,18 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 		var viewID = view.id();
 		originalAbsoluteViewTransforms[viewID+""] = view.absoluteTransform().copy();
 	}
-
+	// TODO: use this for subsequent views
 	console.log(originalAbsoluteViewTransforms);
-// set first 2 default views [highest connectivity / lowest average sigma error (R,...)]
 
-
-
-// optimize first 2 views using reprojection error
+	// optimize first 2 views using reprojection error or whatever
 	var viewA = workOrderedViews[0];
 	var viewB = workOrderedViews[1];
 
+
+	// get all 3D points that the 2 views have in common
 	var pointSpaceA = viewA.pointSpace();
 	var points2DA = pointSpaceA.toArray();
-	console.log(points2DA);
+	// console.log(points2DA);
 	var points3DAB = [];
 	for(var i=0; i<points2DA.length; ++i){
 		var point2DA = points2DA[i];
@@ -7080,11 +7093,13 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 			points3DAB.push(point3D);
 		}
 	}
-	//var points3DA = viewA.points3D();
-
+	console.log("SHARED FIRST PAIR POINTS:");
 	console.log(points3DAB);
+
+	world.optimizeErrorReprojectionPair(viewA,viewB,points3DAB);
+	world.optimizeErrorReprojectionPair(viewA,viewB,points3DAB);
+
 	/*
-	get all 3D points that the 2 views have in common
 	iterate:
 		- estimate 3D point positions using pairwise view R
 		- iterate: [keep at least 100 points, stop when R error difference goes below threshold, stop when iteration count > 10]
@@ -7094,6 +7109,10 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 			- nonlinear optimize points using R error
 	=> have a good R between pairs
 	*/
+
+
+throw "optimize 3rd view ..."
+	
 
 // add a new view to list & optimize addition
 	/*
@@ -7147,6 +7166,62 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 	- 3D rotation 3D axis distance
 	*/
 
+/*
+
+
+- IS THERE ANY WAY TO TRANSLATE 3D POINT / GEOMETRY ERROR TO CAMERA GEOMETRY ?
+	=> nonlinear relationship
+
+	=> can a 1D sampling line be made ?
+
+- ERROR MEASUREMENTS / ADJUSTMENTS
+	- pairwise point distance
+	- local 3D plane for each overlapping point areas
+		- estimate 
+	- 
+	- WHAT WAS THE ANGLE ONE?
+		- 3 points
+			- triangle/plane in space
+		- 2 points ?
+			- vector in space
+				-> angle error
+
+- UPDATING CAMERA EXTRINSIC VALUE ADJUSTMENTS:
+	- do pos+angle 6 DoF together
+	- do position 3 DoF separately
+	- do angle 3 DoF separately
+	- do normal+2 angle DoF separately
+	- do normal+1 depth DoF separately 
+
+
+- 
+
+- UPDATING CAMERA EXTRINSIC VALUE UPDATES:
+	- gradient descent
+		=> this has some local minima issues
+		-> simulateda nnealing picking values around the area at random (scaled with error/accuracy at current step)
+	- repeated N-grid sampling of error / DoF space
+		- do a sampling on a grid & pick best 
+			=> NO MORE THAN 3 DOF => error calcs too high
+
+- DEFINING A SURFACE
+	- a point or group of points estimating surface (plane or 2D poly)
+		=> needs to be recalculated when the camera is repositioned
+
+- SAMPLING SURFACE POINTS:
+	- use error (eg distance, etc.) to get distribution
+		=> ignore worst of the errored points (and possibly best?)
+
+- FINDING BEST NEXT-STEP CAMERA PARAM - IDEA: vector direction
+	- get the normal/distance vector from each parameter check
+		- don't know how to use the list of +/- vectors and combine into coherent action
+
+- PASSING SURFACE NEXT ACTION IDEA:
+	- 
+
+*/
+
+
 
 /*
 
@@ -7162,9 +7237,212 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 
 */
 
+
+
+/*
+BASIC ALIGNMENT ALGORITHM STEPS
+	- get 2 views aligned already using f/r/... errors [A & B]
+	- introduce a 3rd view: [C], has shared points IN AT LEAST A, possibly also B
+
+	- repeated update C extrinsic camera params:
+		- for a random set of ~100 points in 2D image plane in C (w/ lower errors in F & R & ...)
+			- find a neighborhood of 3-5 other points to approximate a surface
+				- plane, or bivariate polynomial
+				- w/ surface point closest to originating point & surface normal
+				- back-projected from 2D plane to 3D location in plane surface
+			- find closest 3-5 points in 2D image plane adjacent views A/B [rather than using the single (noisy) point: use a average point]
+				- also find surface point & normal closest to C-A point
+			=> HAVE A/B point+normal ('CORRECT'/GOAL POSITION) & C point ('CURRENT'/PUTATIVE POSITION)
+				= & CORRESPONDING SURFACE NORMALS
+			- calculate an error metric for surface:
+				- distance between 2 closest surface points
+				- angle (min) between the surface normals
+			- discard the worst error points outside 1-2 sigma
+		- with remaining sample points [10-50]:
+			=> translational dimension ballpark = average distance between surfaces (plus some insight from camera baseline?)
+					- use distance from camera origin?
+					- use ... ?
+			=> rotational dimension ballpark = average angle between surface normals (plus some insight from camera angles?)
+			- get error metric AS-IS
+				[sum surface point distances / total]
+				[sum angle differences / total]
+			- get error metric updating the camera params
+				- this could be all 6, just 3, some lower-order approx using fewer, or 1 single param
+			-> calculate gradient
+				- get new guess point for camera parameters 
+				- sample along the vector to try different options (bisect? regular interval?)
+			=> IF THERE IS A LOWER ERROR:
+				- update the camera parameters for C
+				- recalculate all the point positions
+			=> IF THERE IS NO LOWER ERROR: (assuming the model is still not lined up to desired accuracy)
+				- wiggle the paramters?
+				- get some general direction vector from set of points & move the camera some factor amount (bisecting options?)
+				- get some general rotation vector from set of points's normals (AVERAGE THE ROTATIONS) & rotate camera in some similar route? (bisecting options?)
+				- 
+
+		- when error is low enough / not getting any better (average distance error, angle error, or whatnot)
+			- set view C to new orientation
+			
+
+
+NOTES:
+		- reprojection error or other metrics can be used iteritively as well to move the goal parameters outside of the local minima ?
+	
+
+			=> IF THERE IS NO LOWER ERROR:
+				- half the translation/rotation/etc metrics
+			=> IF THERE IS A LOWER ERROR:
+				- update 
+
+
+
+		- is there a way to optimize all views iteritively?
+			- A+B fixed, move C using A-C & B-C error
+			- A+C fixed, move B using A-B & B-C error
+			- B+C fixed, move A using A-B & A-C error
+
+
+
+			- maybe the average 3D point of a set of points is the 'truth' (once all views are 'finalized')
+				- weighted by R-error or whatnot
+				- all views move based on the OVERLAPPING AVERAGE POINTS (set to static at beginning of loop)
+
+
+
+*/
 throw "sequentiallyOptimizeViews";
 }
 
+Stereopsis.World.prototype.optimizeErrorReprojectionPair = function(viewA,viewB,sharedPoints3DAB){ // move B around nonlinearly using reprojection error of known 2D points
+//	console.log(viewA);
+//	console.log(viewB);
+	var absA = viewA.absoluteTransformInverse();
+	var absB = viewB.absoluteTransformInverse();
+	var extA = viewA.absoluteTransform();
+	var extB = viewB.absoluteTransform();
+	var invKA = viewA.Kinv();
+	var invKB = viewB.Kinv();
+	var KA = viewA.K();
+	var KB = viewB.K();
+	var extrinsics = [extA,extB];
+	var invsK = [invKA,invKB];
+	var points2D = [];
+	var errorsR = [];
+	for(var i=0; i<sharedPoints3DAB.length; ++i){
+		var point3D = sharedPoints3DAB[i];
+		//console.log(point3D);
+		var point2DA = point3D.pointForView(viewA);
+		var point2DB = point3D.pointForView(viewB);
+		//console.log(point2DA);
+		//console.log(point2DB);
+		var p2DA = point2DA.point2D();
+		var p2DB = point2DB.point2D();
+		points2D[0] = p2DA;
+		points2D[1] = p2DB;
+		var location3D = R3D.triangulatePointDLTList(points2D, extrinsics, invsK);
+		//console.log(location3D);
+		var errorR = R3D.reprojectionError(location3D, p2DA,p2DB, extA, extB, KA, KB);
+		//console.log(errorR);
+		// var error = R3D.reprojectionError(estimated3D, pA,pB, extrinsicA, extrinsicB, Ka, Kb);
+		errorsR.push(errorR["error"]);
+	}
+	console.log(errorsR);
+	var result = Code.repeatedDropArrayOutliers(errorsR, sharedPoints3DAB, function(errors,datas){
+		var min = Code.min(errors);
+		var mean = Code.mean(errors);
+		var sigma = Code.stdDev(errors, min);
+		console.log("errors r: "+mean+" +/- "+sigma);
+		var sigmaLimit = 1.5; // 1.0 to 2.0
+		var limit = min + sigmaLimit*sigma;
+		return limit;
+	}, 100, 25);
+	console.log(result);
+	var bestPoints3D = result["data"];
+
+
+
+	// get average world size
+
+	// get baseline size
+	var posA = new V3D(0,0,0);
+		absA.multV3DtoV3D(posA,posA);
+	var posB = new V3D(0,0,0);
+		absB.multV3DtoV3D(posB,posB);
+	var distanceAB = V3D.sub(posA,posB).length();
+	console.log("distanceAB: "+distanceAB);
+
+
+	// set angle error movement ~ 1/1000 of baseline
+	var errorGDDistance = distanceAB * 1E-6;
+	// set angle error movement ~ 1 degree to start
+	var errorGDRadians = Code.radians(1.0) * 1E-6;
+
+	var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
+
+
+
+
+
+	// nonlinearly resolve
+	//var listPoints2DA = [];
+	//var listPoints2DB = [];
+	//var listPoints2D = [listPoints2DA,listPoints2DB];
+	var listPoints2D = [];
+	for(var i=0; i<bestPoints3D.length; ++i){
+		var point3D = bestPoints3D[i];
+		//console.log(point3D);
+		var point2DA = point3D.pointForView(viewA);
+		var point2DB = point3D.pointForView(viewB);
+		//listPoints2DA.push(point2DA.point2D());
+		//listPoints2DB.push(point2DB.point2D());
+		var entryP3D = [];
+		var entryP2D = [point2DA.point2D(), 0];
+		entryP3D.push(entryP2D);
+		var entryP2D = [point2DB.point2D(), 0];
+		entryP3D.push(entryP2D);
+		listPoints2D.push(entryP3D);
+	}
+	var listExts = [extA,extB];
+	var listKs = [KA,KB];
+	var listKinvs = [invKA,invKB];
+	var selectViewIndex = 1; // move B around
+
+	var maxIterations = 1000;
+	var negativeIsBad = true;
+
+
+	console.log(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad);
+	var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
+	var P = result["P"];
+	console.log(P);
+	//selectView.absoluteTransform(P);
+
+
+	viewB.absoluteTransform(P);
+
+//	var list = Code.repeatedDropOutliers(entries, toValueFxn, toLimitFxn, minCount, maxIterations, updateFxn);
+
+
+	//throw "...";
+}
+/*
+
+		if(!invK){ // no K (F process?)
+			return null;
+		}
+		points2D.push(p2D);
+		extrinsics.push(extrinsic);
+		invsK.push(invK);
+	}
+	var totalError = 0;
+	for(var i=0; i<p2Ds.length; ++i){
+		var p2D = p2Ds[i];
+		var view = p2D.view();
+		p2D = p2D.point2D();
+		var K = view.K();
+		var extrinsic = view.absoluteTransform();
+		var distanceSquare = R3D.reprojectionErrorSingle(location3D,p2D,extrinsic,K);
+*/
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Stereopsis.World.prototype.solveOptimizeSingleViewReprojection = function(viewSolve, pairInfo, loopIterations){
 

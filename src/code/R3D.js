@@ -387,9 +387,11 @@ R3D.PFromKRT = function(K,R,t){
 }
 
 
-R3D.optimizeMultipleCameraExtrinsicDLTNonlinear = function(listP, listK, listKinv, variablePIndex, listPoints2D, maxIterations, negativeIsBad){
+R3D.optimizeMultipleCameraExtrinsicDLTNonlinear = function(listP, listK, listKinv, variablePIndex, listPoints2D, maxIterations, negativeIsBad, useEpsilon){
 	maxIterations = Code.valueOrDefault(maxIterations, 1000);
 	negativeIsBad = Code.valueOrDefault(negativeIsBad, false);
+
+	useEpsilon = Code.valueOrDefault(useEpsilon, false);
 	// console.log("??? R3D.optimizeMultipleCameraExtrinsicDLTNonlinear: "+listP.length+" views  & "+listPoints2D.length+" points @ "+variablePIndex);
 	var args = [listP, listK, listKinv, variablePIndex, listPoints2D, negativeIsBad];
 	// make a temporary matrix for iterating on
@@ -397,7 +399,8 @@ R3D.optimizeMultipleCameraExtrinsicDLTNonlinear = function(listP, listK, listKin
 		P = O.copy();
 	listP[variablePIndex] = P;
 	var x = R3D.transformMatrixToComponentArray(P);
-	var result = Code.gradientDescent(R3D._transformCameraExtrinsicDLTNonlinearGD, args, x, null, maxIterations, 1E-10);
+
+	var result = Code.gradientDescent(R3D._transformCameraExtrinsicDLTNonlinearGD, args, x, useEpsilon, maxIterations, 1E-10);
 	var x = result["x"];
 	var cost = result["cost"];
 	// replace as-was

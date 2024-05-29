@@ -14,7 +14,7 @@ function App3DR(){
 		// this._canvas.addFunction(Canvas.EVENT_MOUSE_DOWN_OUTSIDE,this._handleMouseUpFxn,this);
 		// this._canvas.addFunction(Canvas.EVENT_MOUSE_MOVE_OUTSIDE,this._handleMouseUpFxn,this);
 		// this._canvas.addFunction(Canvas.EVENT_MOUSE_UP_OUTSIDE,this._handleMouseUpFxn,this);
-//Canvas.EVENT_MOUSE_CLICK_OUTSIDE = "canevtmouclkout";
+//Canvas.EVENT_MOUSE_CLICK_OUTSIDE = "canevtmouclkout";ƒ
 	this._canvas.addFunction(Canvas.EVENT_MOUSE_MOVE,this._handleMouseMoveFxn,this);
 
 	//this._canvas.addFunction(Canvas.EVENT_MOUSE_CLICK,this._handleMouseClickFxn,this);
@@ -6965,6 +6965,7 @@ App3DR.ProjectManager.prototype.toYAML = function(){
 	yaml.writeString("created", this._createdTimestamp);
 	yaml.writeString("modified", this._modifiedTimestamp);
 	yaml.writeBlank();
+	
 	// views
 	len = this._views ? this._views.length : 0;
 	if(len>0){
@@ -7021,7 +7022,7 @@ App3DR.ProjectManager.prototype.toYAML = function(){
 		yaml.writeArrayLiteral("pairPutative", putatives);
 		yaml.writeBlank();
 	}
-	
+
 	// cameras
 	len = this._cameras ? this._cameras.length : 0;
 	if(len>0){
@@ -7092,6 +7093,11 @@ App3DR.ProjectManager.prototype.toYAML = function(){
 	yaml.writeBlank();
 	
 	*/
+	/*
+	if(this._testFilename == null){
+
+	}
+	*/
 	yaml.writeString("test",this._testFilename);
 	
 	yaml.writeBlank();
@@ -7153,6 +7159,7 @@ App3DR.ProjectManager.prototype.saveProjectFile = function(callbackFxn){
 	console.log("saveProjectFile");
 	this._operation = App3DR.ProjectManager.OPERATION_SAVE_PROJECT;
 	var str = this.toYAML();
+	console.log("str: "+str);
 	var binary = Code.stringToBinary(str);
 	this.addOperation("SET", {"path":this.infoPath(),"data":binary}, this._saveProjectCallback, this, {"callback":callbackFxn});
 }
@@ -8362,7 +8369,7 @@ console.log(triples);
 		console.log("_absoluteViewsFromDatas");
 		var graph = project._absoluteViewsFromDatas(graphViews, graphPairs, graphTriples);
 		console.log(graph);
-		// throw "after abs"
+		throw "after abs - _absoluteViewsFromDatas"
 
 		var viewIndextoViewID = [];
 		for(var v=0; v<graphViews.length; ++v){
@@ -13219,7 +13226,7 @@ console.log(groupIDs);
 
 // HERE
 	this.displayViewGraph(orderedTransforms,groupPairsPass, 100, groupIDs);
-
+throw "...displayViewGraph - before skeleton"
 	// absolute to extrinsic
 	for(var i=0; i<orderedTransforms.length; ++i){
 		if(orderedTransforms[i]){
@@ -13236,7 +13243,7 @@ console.log(groupIDs);
 
 // throw "... reduced set:";
 
-
+console.log("when do we want skeleton v skeleton + groups ???")
 // var doSkeleton = false;
 var doSkeleton = true;
 
@@ -13262,6 +13269,8 @@ var doSkeleton = true;
 
 console.log(backbone);
 
+
+//throw "... ?"
 // throw "????????? _absoluteViewsFromDatas"
 
 	return {"transforms":orderedTransforms, "cameras":allCameras, "views":views, "skeleton":backbone, "groups":groups, "skeletonEdges":skeleton["skeletonEdges"], "groupEdges":skeleton["groupEdges"]};
