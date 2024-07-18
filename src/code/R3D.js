@@ -390,7 +390,6 @@ R3D.PFromKRT = function(K,R,t){
 R3D.optimizeMultipleCameraExtrinsicDLTNonlinear = function(listP, listK, listKinv, variablePIndex, listPoints2D, maxIterations, negativeIsBad, useEpsilon){
 	maxIterations = Code.valueOrDefault(maxIterations, 1000);
 	negativeIsBad = Code.valueOrDefault(negativeIsBad, false);
-
 	useEpsilon = Code.valueOrDefault(useEpsilon, false);
 	// console.log("??? R3D.optimizeMultipleCameraExtrinsicDLTNonlinear: "+listP.length+" views  & "+listPoints2D.length+" points @ "+variablePIndex);
 	var args = [listP, listK, listKinv, variablePIndex, listPoints2D, negativeIsBad];
@@ -399,8 +398,10 @@ R3D.optimizeMultipleCameraExtrinsicDLTNonlinear = function(listP, listK, listKin
 		P = O.copy();
 	listP[variablePIndex] = P;
 	var x = R3D.transformMatrixToComponentArray(P);
-
-	var result = Code.gradientDescent(R3D._transformCameraExtrinsicDLTNonlinearGD, args, x, useEpsilon, maxIterations, 1E-10);
+	var minErrorDifference = 1E-12/listP.length; // 
+	// min error difference should be (allowable pixels error per point) / (# of points)
+	var result = Code.gradientDescent(R3D._transformCameraExtrinsicDLTNonlinearGD, args, x, useEpsilon, maxIterations, minErrorDifference);
+	// Code.gradientDescent = function(fxn, args, x, dx, iter, diff, epsilon, lambda){
 	var x = result["x"];
 	var cost = result["cost"];
 	// replace as-was
@@ -442,7 +443,7 @@ R3D._transformCameraExtrinsicDLTNonlinearGD = function(args, x, isUpdate){
 		if(!point3D){
 			console.log("null point3D");
 			console.log(points2D,extrinsics,invKs);
-			// throw "?"
+			throw "?"
 			continue;
 		}
 		// reprojection error:
@@ -465,21 +466,22 @@ R3D._transformCameraExtrinsicDLTNonlinearGD = function(args, x, isUpdate){
 			error += distanceSquare;
 		}
 		if(negativeIsBad && isBehind){ // behind camera
+			console.log("isBehind");
 			error *= 2;
 		}
 		totalError += error;
 
 	} // track list
-	if(isUpdate){
-		console.log(totalError);
-	}
+	// if(isUpdate){
+		// console.log(totalError);
+	// }
 	return totalError;
 }
 
 
 
 
-
+ 
 R3D.optimizeSingleCameraExtrinsicStaticKnown3DReprojection = function(P, K, Kinv, listPoints2D, listPoints3D, maxIterations){
 	throw "R3D.BundleAdjustCameraExtrinsicSingle = function(K, Kinv, P, points3D, points2D, maxIterations)";
 

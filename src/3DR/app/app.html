@@ -601,8 +601,8 @@ console.log(" "+i+" DIFF: "+orgDiff.length()+" @ "+Code.degrees(dirDiff));
 
 
 function classesLoadedFxn(){
-	//var app = new App3DR();
-	// return;
+	var app = new App3DR();
+	return;
 
 	testGD();
 	// testAbs();
@@ -612,7 +612,17 @@ function classesLoadedFxn(){
 function testGD(){ // test Gradient Descent
 	console.log("testGD");
 
-	var equation = function(x,y){
+	var equationSameSpace = function(x,y){
+		x = x-0.5;
+		y = y+0.25;
+		var value = x*x + y*y;
+		return value;
+	}
+
+	var equationLinRad = function(radius,angle){
+		var x = Math.cos(angle)*radius;
+		var y = Math.sin(angle)*radius;
+		// console.log("loc: "+x+","+y+" ... ");
 		x = x-0.5;
 		y = y+0.25;
 		var value = x*x + y*y;
@@ -620,7 +630,25 @@ function testGD(){ // test Gradient Descent
 	}
 
 
+
+	var surf = new BivariateSurface(3, 0);
+	// surf.coefficients([0.1,2,-0.3, 4,-0.5,-0.6]); // 2 = 6
+	// c x y z, xx,xy,xy, yy,yz, zz
+	surf.coefficients([0.1, 0.2,0.3,0.5, 0.1,0.4,0.1, 0.1,-0.1, 0.1]); // 3 = 10
+	var equationComplicated = function(x,y){
+		var value = surf.valueAt(x,y);
+		return value;
+	}
+
+
+	// var equation = equationSameSpace;
+	// var equation = equationLinRad;
+	var equation = equationComplicated;
+
+
 	// try this with an angle & a distance vector
+
+	// try this with noise (consistent & random per sample)
 
 	var gdMethod = function(args, x, isUpdate){
 		//console.log(x);
@@ -640,6 +668,10 @@ function testGD(){ // test Gradient Descent
 	var epsilon = [0.001, 0.001];
 	//var epsilon = [1E-9, 1E-9]; // SMALL -- ok if smooth
 
+
+	// radians + distance
+	//var epsilon = [0.001, 0.1];
+
 	//var maxIterations = 100;
 	var maxIterations = 200;
 
@@ -653,6 +685,109 @@ function testGD(){ // test Gradient Descent
 
 	console.log(x[0]+", "+x[1]);
 
+
+// 0.5, -0.25
+
+
+this._canvas = new Canvas(null,0,0,Canvas.STAGE_FIT_FILL, false,false);
+this._stage = new Stage(this._canvas, 1000/20);
+this._root = new DO();
+this._stage.addChild(this._root);
+this._canvas.addListeners();
+this._stage.addListeners();
+this._stage.start();
+GLOBALSTAGE = this._stage;
+
+var display = new DO();
+var cellSize = 10.0;
+display.matrix().scale(1.0);
+//display.matrix().translate(100, 100);
+display.matrix().translate(10, 10);
+GLOBALSTAGE.addChild(display);
+
+
+
+	// linear x, y @ 0,0
+	// gridCenter = new V2D(0,0);
+	// gridSize = new V2D(5,5);
+	// gridCount = new V2D(20,20);
+	// gridValues = Code.newArray(gridCount.x * gridCount.y);
+
+
+	// x to be in 0 -> 2
+	// y to be in 0 -> 2pi
+
+	// different x,y @ .5,..
+	//gridCenter = new V2D(-1,-Math.PI);
+	//gridSize = new V2D(3,Math.PI*2.0);
+	// close zoom
+	//gridCenter = new V2D(0.5,-0.46);
+	//gridSize = new V2D(3,Math.PI*2.0);
+	// gridCount = new V2D(25,50);
+	// gridValues = Code.newArray(gridCount.x * gridCount.y);
+
+
+	// complicated
+	gridCenter = new V2D(0,0);
+	gridSize = new V2D(5,5);
+	gridCount = new V2D(50,50);
+	gridValues = Code.newArray(gridCount.x * gridCount.y);
+
+
+	
+
+
+	for(var j=0; j<gridCount.y; ++j){
+		for(var i=0; i<gridCount.x; ++i){
+			//var x = (gridCenter.x - (gridSize.x/2) ) * gridSize.x*(i/gridCount.x);
+			//var y = (gridCenter.y - (gridSize.y/2) ) * gridSize.y*(j/gridCount.y);
+
+			var x = gridCenter.x - (gridSize.x/2) + gridSize.x*(i/gridCount.x);
+			var y = gridCenter.y - (gridSize.y/2) + gridSize.y*(j/gridCount.y);
+
+			var v = equation(x,y);
+			gridValues[j*gridCount.x + i] = v;
+		}
+	}
+
+	// console.log(gridValues);
+	var info = Code.infoArray(gridValues);
+	// console.log(info);
+	for(var i=0; i<gridValues.length; ++i){
+		var v = gridValues[i];
+		v = (v-info["min"])/info["range"];
+		gridValues[i] = v;
+	}
+	// console.log(gridValues);
+
+	//var colors = [0xFF000000, 0xFF330066, 0xFF0000FF, 0xFF3399FF, 0xFF00FF00, 0xFFFF0000, 0xFFFF9900, 0xFFFFFFFF];
+
+	//var colors = [0xFF0000FF, 0xFF660066, 0xFFFF0000];
+	// var colors = [0xFF000000, 0xFF000099, 0xFF660066, 0xFFFF0000];
+
+	var colors = [0xFF0000FF, 0xFFFF0000];
+
+	for(var j=0; j<gridCount.y; ++j){
+		for(var i=0; i<gridCount.x; ++i){
+			var v = gridValues[j*gridCount.x + i];
+
+			// visual distinction
+			// v = Math.pow(v,0.5);
+			v = Math.pow(v,0.1);
+
+			//display.graphics().
+			var color = Code.interpolateColorGradientARGB(v, colors);
+			display.graphics().setFill(color);
+			display.graphics().beginPath();
+			display.graphics().drawRect(i*cellSize, j*cellSize, cellSize,cellSize);
+			display.graphics().endPath();
+			display.graphics().fill();
+
+			// draw:
+		}
+	}
+
+	
 }
 
 function testDistances(){ // points in a 2D circle are distributed more out (linearly-perimeter) ; points in a 3D sphere are distriubuted more out (squared-area)

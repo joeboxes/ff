@@ -4272,10 +4272,16 @@ Stereopsis.World.prototype.updatePoints3DNullLocations = function(points3D){
 			var matches = point3D.toMatchArray();
 			for(var j=0; j<matches.length; ++j){
 				var match = matches[j];
-				Stereopsis.updateErrorForMatch(match);
+				// Stereopsis.updateErrorForMatch(match);
+				// TOOD: ...
 			}
 			// point3D.calculateAbsoluteLocation(this);
+
 			point3D.calculateAbsoluteLocationDLT(world);
+			/*
+			var location3D = point3D.globalPoint3DLinear();
+			world.updatePoint3DLocation(point3D,location3D);
+			*/
 		}
 	}
 }
@@ -7048,6 +7054,20 @@ console.log("MERGE VERTEXES ....................................................
 
 	return viewList;
 }
+Stereopsis.World.prototype.sharedPoints3D = function(viewA,viewB){
+	var pointSpaceA = viewA.pointSpace();
+	var points2DA = pointSpaceA.toArray();
+	var points3DAB = [];
+	for(var i=0; i<points2DA.length; ++i){
+		var point2DA = points2DA[i];
+		var point3D = point2DA.point3D();
+		var point2DB = point3D.point2DForView(viewB);
+		if(point2DB != null){
+			points3DAB.push(point3D);
+		}
+	}
+	return points3DAB;
+}
 Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 	var world = this;
 
@@ -7060,6 +7080,8 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 		viewOrderString = viewOrderString+" -> ("+i+") "+view.data();
 	}
 	console.log("VIEW ORDER: "+viewOrderString);
+
+// throw "?"
 	
 
 	var points3D = world.toPointArray();
@@ -7080,73 +7102,161 @@ Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 	var viewB = workOrderedViews[1];
 
 
-	// get all 3D points that the 2 views have in common
-	var pointSpaceA = viewA.pointSpace();
-	var points2DA = pointSpaceA.toArray();
-	// console.log(points2DA);
-	var points3DAB = [];
-	for(var i=0; i<points2DA.length; ++i){
-		var point2DA = points2DA[i];
-		var point3D = point2DA.point3D();
-		var point2DB = point3D.point2DForView(viewB);
-		if(point2DB != null){
-			points3DAB.push(point3D);
-		}
-	}
+console.log(viewA.absoluteTransform()+"");
+console.log(viewB.absoluteTransform()+"");
+
+	var points3DAB = world.sharedPoints3D(viewA,viewB);
 	console.log("SHARED FIRST PAIR POINTS:");
 	console.log(points3DAB);
 
-	world.optimizeErrorReprojectionPair(viewA,viewB,points3DAB);
-	world.optimizeErrorReprojectionPair(viewA,viewB,points3DAB);
+	// throw "..."
 
-	/*
-	iterate:
-		- estimate 3D point positions using pairwise view R
-		- iterate: [keep at least 100 points, stop when R error difference goes below threshold, stop when iteration count > 10]
-			- throw out worst 3D points based on:
-				- R 2 sigma
-				- F 2 sigma
-			- nonlinear optimize points using R error
-	=> have a good R between pairs
-	*/
+	world.optimizeErrorReprojectionPairMoveViewB(viewA,viewB,points3DAB);
 
-
-throw "optimize 3rd view ..."
 	
 
-// add a new view to list & optimize addition
-	/*
-		estimate new view absolute transform based on original transforms:
-			- for each prev/existing view:
-				- calculate OLD relative transform
-				- estimate relative scale change of prev view OLD relative & new relative 
-				- scale the translation part of relative transform based on new/old scale
-				- append relative transform to new absolute location
-			- average N absolute views (TODO: use a relative error percentage)
-				- can do independently/separately: scale, translation, rotation
-				- can do all together?
-			- set new absolute view transform
-		optimize new view orientation:
-			iterate:
-				- 
-	*/
+	// add a new view to list & optimize addition
+	
+	for(var viewNextIndex = 2; viewNextIndex<workOrderedViews.length; ++viewNextIndex){
+		console.log("viewNextIndex: "+viewNextIndex);
+		var viewC = workOrderedViews[viewNextIndex];
+		var viewIDC = viewC.id();
+		// console.log(viewC);
+
+		// var originalViewCAbs = originalAbsoluteViewTransforms[viewIDC+""];;
+		var originalExtC = originalAbsoluteViewTransforms[viewC.id()];
+		var expectedAbsolutesViewC = [];
+		// GET INITIAL TRANSFROM FOR VIEW C:
+		// TODO: only reference 'related' previous views, and average based on original relative edge error/point-count
+		for(var i=0; i<viewNextIndex; ++i){
+			var viewA = workOrderedViews[i];
+			var originalExtA = originalAbsoluteViewTransforms[viewA.id()];
+			var currentExtA = viewA.absoluteTransform();
+			// for each established/calculated view:
+			var scales = [];
+			for(var j=0; j<viewNextIndex; ++j){
+				var viewB = workOrderedViews[j];
+				if(viewB==viewA){
+					continue;
+				}
+				// console.log(viewB);
+				console.log(viewA.id()+"-"+viewB.id());
+				var originalExtB = originalAbsoluteViewTransforms[viewB.id()];
+				var currentExtB = viewB.absoluteTransform();
+				// console.log(originalExtA+" A 1");
+				// console.log(originalExtB+" B 1");
+				// console.log(currentExtB+" A 2");
+				// console.log(currentExtB+" B 2");
+
+				// get relative transforms:
+
+				var originalRelativeAB = Matrix.relativeReference(originalExtA,originalExtB);
+				var currentRelativeAB = Matrix.relativeReference(currentExtA,currentExtB);
+					// relativeReference
+					// relativeWorld
+
+				var baselineOriginal = originalRelativeAB.multV3DtoV3D(new V3D(0,0,0));
+				var baselineCurrent = currentRelativeAB.multV3DtoV3D(new V3D(0,0,0));
+				// console.log("POSITIONS: "+baselineOriginal+" / "+baselineCurrent);
+
+				baselineOriginal = baselineOriginal.length();
+				baselineCurrent = baselineCurrent.length();
+				var scaleCurrentToOriginal = baselineOriginal/baselineCurrent;
+
+				console.log("SCALE: "+baselineOriginal+" / "+baselineCurrent+" = "+scaleCurrentToOriginal);
+				scales.push(scaleCurrentToOriginal);
+				// the established view's scale = (current adjacent view baseline)/(original adjacent view baseline)
+			}
+			var viewACurrentScale = Code.averageNumbersLn(scales);
+			console.log("EXTABLISHED VIEW "+viewA.id()+" SCALE: "+viewACurrentScale);
+
+			// get original relative transform between established view & viewC
+			//var originalExtC = originalAbsoluteViewTransforms[viewC.id()];
+			// var currentExtC = viewC.absoluteTransform();
+			var originalRelativeAC = Matrix.relativeReference(originalExtA,originalExtC);
+				//relativeWorld
+				//relativeReference
+			
+			// get current established view's absolute transform
+			// apply relative transform
+			
+			// apply average scale of A - scale relative transform by current scale
+			// console.log(originalRelativeAC);
+			originalRelativeAC = Matrix.transform3DScalePoints(originalRelativeAC,viewACurrentScale);
+			// append to established view
+			var expectedMatrixC = Matrix.mult(currentExtA,originalRelativeAC);;
+			// console.log("EXPECTED C:\n"+expectedMatrixC);
+			expectedAbsolutesViewC.push(expectedMatrixC);
+		}
 
 
-// TODO: TRY add third view & optimize first 3 views randomly using location metrics ???
+		// TODO: is this a good average: position & rotation ?
+		var expectedAbsViewC = Code.averageMatrices3D(expectedAbsolutesViewC);
+		console.log("expectedAbsViewC C:\n"+expectedAbsViewC);
 
-// 
+		var originalPositionC = originalExtC.multV3DtoV3D(new V3D(0,0,0));
+		var expectedPositionC = expectedAbsViewC.multV3DtoV3D(new V3D(0,0,0));
+		var distanceDelta = V3D.sub(originalPositionC,expectedPositionC).length();
+		console.log("distanceDelta: "+distanceDelta);
 
-	throw "get this working with reprojection error first"
+		// set as new absolute matrix:
+		viewC.absoluteTransform(expectedAbsViewC);
+
+		var maxAdjViews = 4;
+		var adjacentViews = [];
+		for(var i=0; i<viewNextIndex; ++i){
+			var viewA = workOrderedViews[i];
+			if(viewA==viewC){
+				continue;
+			}
+			adjacentViews.push(viewA);
+		}
+		Code.truncateArray(adjacentViews, maxAdjViews);
+
+		// for each of view C's adjacent established views (shared points w/ average edge error ) up to ~3-5
+		// get shared points for each view
+		var sharedPoints3D = [];
+		for(var i=0; i<adjacentViews.length; ++i){
+			var viewA = adjacentViews[i];
+			var points3DAB = world.sharedPoints3D(viewA,viewC);
+			sharedPoints3D.push(points3DAB);
+		}
+		
+		
+			// optimize viewC transform 
+			// world.optimizeErrorReprojectionPairMoveViewB(viewA,viewB,points3DAB);
+
+		world.optimizeErrorReprojectionGroupMoveView(viewC,adjacentViews,sharedPoints3D);
+
+		console.log("new C matrix. ?");
+
+
+		// throw "loop end";
+
+
+
+
+
+	}
+
+	// recalculate points
+	// world.updatePoint3DLocation
+	var points3D = world.toPointArray();
+	var doLocation = true;
+	var doPatch = false;
+	var doAffines = false;
+	var doOnlyNew = false;
+	world.calculatePoint3DPatches(points3D, doLocation, doPatch, doAffines, doOnlyNew);
+
+
+	var str = world.toYAMLString();
+	console.log(str);
+	throw "revised views";
+
 
 /*
-- for each new view:
-	- set new location based on original offsets + new relative changes
-		- get overall new scale difference [survey baseline distances of all SET views]
-		- get expected position location from each view
-		- get expected rotation location from each view
-		=> average everything
-		=> set value
-	- optimize via: reprojection error
+
+	x optimize via: reprojection error
 	- optimize via: 3D (surface) distance error
 	- optimize via: 3D (local) rotation angle error
 
@@ -7310,14 +7420,22 @@ NOTES:
 
 
 */
-throw "sequentiallyOptimizeViews";
+// throw "sequentiallyOptimizeViews";
 }
 
-Stereopsis.World.prototype.optimizeErrorReprojectionPair = function(viewA,viewB,sharedPoints3DAB){ // move B around nonlinearly using reprojection error of known 2D points
-//	console.log(viewA);
-//	console.log(viewB);
-	var absA = viewA.absoluteTransformInverse();
-	var absB = viewB.absoluteTransformInverse();
+Stereopsis.World.prototype.bestSharedPointsForViewPair = function(viewA,viewB,sharedPoints3DAB, minimumPointCount, maximumReduceIterations){
+	world = this;
+	var minimumPoints3D = Code.valueOrDefault(minimumPointCount,100);
+	var maxReduceIterations = Code.valueOrDefault(maximumReduceIterations,25);
+	
+	// var bestPoints3DAB = Code.copyArray(sharedPoints3DAB);
+
+	var points2D = [];
+	var errorsR = [];
+	var errorsF = [];
+	var errorSumR = 0;
+	var errorSumF = 0;
+
 	var extA = viewA.absoluteTransform();
 	var extB = viewB.absoluteTransform();
 	var invKA = viewA.Kinv();
@@ -7326,102 +7444,292 @@ Stereopsis.World.prototype.optimizeErrorReprojectionPair = function(viewA,viewB,
 	var KB = viewB.K();
 	var extrinsics = [extA,extB];
 	var invsK = [invKA,invKB];
-	var points2D = [];
-	var errorsR = [];
+
+	// F needs to be calculated ...
+	// var transformAB = world.transformFromViews(viewA,viewB);
+	// var Fab = transformAB.F(viewA,viewB);
+	// var Fba = transformAB.F(viewB,viewA);
+
 	for(var i=0; i<sharedPoints3DAB.length; ++i){
 		var point3D = sharedPoints3DAB[i];
-		//console.log(point3D);
 		var point2DA = point3D.pointForView(viewA);
 		var point2DB = point3D.pointForView(viewB);
-		//console.log(point2DA);
-		//console.log(point2DB);
 		var p2DA = point2DA.point2D();
 		var p2DB = point2DB.point2D();
 		points2D[0] = p2DA;
 		points2D[1] = p2DB;
 		var location3D = R3D.triangulatePointDLTList(points2D, extrinsics, invsK);
+		// var location3D = point3D.point();
+		var centerA = viewA.center();
+		var centerB = viewB.center();
+		var normalA = viewA.normal();
+		var normalB = viewB.normal();
+		var aToLoc = V3D.sub(location3D,centerA);
+		var bToLoc = V3D.sub(location3D,centerB);
+		var dotA = V3D.dot(normalA,aToLoc);
+		var dotB = V3D.dot(normalB,bToLoc);
+		// console.log(dotA,dotB);
+
 		//console.log(location3D);
 		var errorR = R3D.reprojectionError(location3D, p2DA,p2DB, extA, extB, KA, KB);
-		//console.log(errorR);
+		
+//		console.log(errorR);
 		// var error = R3D.reprojectionError(estimated3D, pA,pB, extrinsicA, extrinsicB, Ka, Kb);
 		errorsR.push(errorR["error"]);
+		errorSumR += errorR["error"];
+		/*
+		var errorF = R3D.fError(Fab, Fba, p2DA,p2DB);
+		errorsF.push(errorF["error"]);
+		errorSumF += errorF["error"];
+		*/
 	}
-	console.log(errorsR);
+
+	// console.log(errorsR);
+	// console.log("total: "+errorSumR);
+
+	// console.log(errorsF);
+	// console.log("total: "+errorSumF);
+
+	// throw ".."
+	//var minimumPoints3D = 100;
+	
 	var result = Code.repeatedDropArrayOutliers(errorsR, sharedPoints3DAB, function(errors,datas){
 		var min = Code.min(errors);
 		var mean = Code.mean(errors);
 		var sigma = Code.stdDev(errors, min);
-		console.log("errors r: "+mean+" +/- "+sigma);
+		// console.log("errors r: "+mean+" +/- "+sigma);
 		var sigmaLimit = 1.5; // 1.0 to 2.0
 		var limit = min + sigmaLimit*sigma;
 		return limit;
-	}, 100, 25);
-	console.log(result);
+	}, minimumPoints3D, maxReduceIterations);
+	// console.log(result);
 	var bestPoints3D = result["data"];
+	return {"points":bestPoints3D};
+}
+
+Stereopsis.World.prototype.optimizeErrorReprojectionGroupMoveView = function(viewMove,sharedViews,sharedPoints3D){
 
 
+	var iterationCount = 5; // 3-5
+	for(var iteration=0; iteration<iterationCount; ++iteration){
+		var absMove = viewMove.absoluteTransformInverse();
+		var extMove = viewMove.absoluteTransform();
+		var invKMove = viewMove.Kinv();
+		var KMove = viewMove.K();
 
-	// get average world size
+		var posMove = new V3D(0,0,0);
+			absMove.multV3DtoV3D(posMove,posMove);
+		var distanceList = [];
 
-	// get baseline size
-	var posA = new V3D(0,0,0);
-		absA.multV3DtoV3D(posA,posA);
-	var posB = new V3D(0,0,0);
-		absB.multV3DtoV3D(posB,posB);
-	var distanceAB = V3D.sub(posA,posB).length();
-	console.log("distanceAB: "+distanceAB);
-
-
-	// set angle error movement ~ 1/1000 of baseline
-	var errorGDDistance = distanceAB * 1E-6;
-	// set angle error movement ~ 1 degree to start
-	var errorGDRadians = Code.radians(1.0) * 1E-6;
-
-	var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
-
-
-
+		// create point entries
+		var listPoints2D = [];
+		var listExts = [extMove];
+		var listKs = [KMove];
+		var listKinvs = [invKMove];
+		for(var j=0; j<sharedViews.length; ++j){
+			var viewAdj = sharedViews[j];
+			var absAdj = viewAdj.absoluteTransformInverse();
+			var extAdj = viewAdj.absoluteTransform();
+			var invKAdj = viewAdj.Kinv();
+			var KAdj = viewAdj.K();
+			listExts.push(extAdj);
+			listKs.push(KAdj);
+			listKinvs.push(invKAdj);
 
 
-	// nonlinearly resolve
-	//var listPoints2DA = [];
-	//var listPoints2DB = [];
-	//var listPoints2D = [listPoints2DA,listPoints2DB];
-	var listPoints2D = [];
-	for(var i=0; i<bestPoints3D.length; ++i){
-		var point3D = bestPoints3D[i];
-		//console.log(point3D);
-		var point2DA = point3D.pointForView(viewA);
-		var point2DB = point3D.pointForView(viewB);
-		//listPoints2DA.push(point2DA.point2D());
-		//listPoints2DB.push(point2DB.point2D());
-		var entryP3D = [];
-		var entryP2D = [point2DA.point2D(), 0];
-		entryP3D.push(entryP2D);
-		var entryP2D = [point2DB.point2D(), 0];
-		entryP3D.push(entryP2D);
-		listPoints2D.push(entryP3D);
+			var posAdj = new V3D(0,0,0);
+				absAdj.multV3DtoV3D(posAdj,posAdj);
+			var distanceViews = V3D.sub(posMove,posAdj).length();
+			distanceList.push(distanceViews);
+
+			var bestPoints3D = world.bestSharedPointsForViewPair(viewMove,viewAdj,sharedPoints3D[j]);
+			bestPoints3D = bestPoints3D["points"];
+			for(var i=0; i<bestPoints3D.length; ++i){
+				var point3D = bestPoints3D[i];
+				var point2DA = point3D.pointForView(viewMove);
+				var point2DB = point3D.pointForView(viewAdj);
+				var entryP3D = [];
+				var entryP2D = [point2DA.point2D(), 0];
+				entryP3D.push(entryP2D);
+				var entryP2D = [point2DB.point2D(), j+1];
+				entryP3D.push(entryP2D);
+				listPoints2D.push(entryP3D);
+			}
+
+		}
+		var averageViewDistance = Code.averageNumbers(distanceList);
+		// console.log('averageViewDistance: '+averageViewDistance);
+		// console.log(bestPoints3D);
+		// console.log(listExts,listKs,listKinvs);
+		
+
+		// set trans error movement ~ 1/1000 of baseline
+		// TODO: try out 1 sigma of 3D point cloud
+		var errorGDDistance = averageViewDistance * 1E-6;
+		// set angle error movement ~ 1 degree to start
+		var errorGDRadians = Code.radians(1.0) * 1E-3;
+		var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
+
+		var selectViewIndex = 0; // move around
+		var maxIterations = 100; // 100 - 1000
+		// var maxIterations = 10000;
+		var negativeIsBad = true;
+
+
+		// // console.log(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad);
+		var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
+		console.log(result);
+		var P = result["P"];
+
+		viewMove.absoluteTransform(P);
+
+		console.log("update point locations in 3D")
+		// possibly updated values:
+		var points2D = [];
+		for(var j=0; j<sharedViews.length; ++j){
+			var viewAdj = sharedViews[j];
+			var sharedPoints = sharedPoints3D[j];
+			var extMove = viewMove.absoluteTransform();
+			var extAdj = viewAdj.absoluteTransform();
+			var extrinsics = [extMove,extAdj];
+			for(var p=0; p<sharedPoints.length; ++p){
+				var point3D = sharedPoints[p];
+				var point2DA = point3D.pointForView(viewMove);
+				var point2DB = point3D.pointForView(viewAdj);
+				var p2DA = point2DA.point2D();
+				var p2DB = point2DB.point2D();
+				points2D[0] = p2DA;
+				points2D[1] = p2DB;
+				var location3D = R3D.triangulatePointDLTList(points2D, listExts, listKinvs);
+				world.updatePoint3DLocation(point3D,location3D);
+			}
+		}
+		// break;
 	}
-	var listExts = [extA,extB];
-	var listKs = [KA,KB];
-	var listKinvs = [invKA,invKB];
-	var selectViewIndex = 1; // move B around
 
-	var maxIterations = 1000;
-	var negativeIsBad = true;
+	// throw "optimizeErrorReprojectionGroupMoveView"
+}
 
-
-	console.log(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad);
-	var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
-	var P = result["P"];
-	console.log(P);
-	//selectView.absoluteTransform(P);
+Stereopsis.World.prototype.optimizeErrorReprojectionPairMoveViewB = function(viewA,viewB,sharedPoints3DAB){ // move B around nonlinearly using reprojection error of known 2D points
+	var world = this;
 
 
-	viewB.absoluteTransform(P);
+	var iterationCount = 5; // 3-5
+	for(var iteration=0; iteration<iterationCount; ++iteration){
 
-//	var list = Code.repeatedDropOutliers(entries, toValueFxn, toLimitFxn, minCount, maxIterations, updateFxn);
+		var absA = viewA.absoluteTransformInverse();
+		var absB = viewB.absoluteTransformInverse();
+		var extA = viewA.absoluteTransform();
+		var extB = viewB.absoluteTransform();
+		var invKA = viewA.Kinv();
+		var invKB = viewB.Kinv();
+		var KA = viewA.K();
+		var KB = viewB.K();
+		var extrinsics = [extA,extB];
+		var invsK = [invKA,invKB];
+		
+		var bestPoints3D = world.bestSharedPointsForViewPair(viewA,viewB,sharedPoints3DAB);
+			bestPoints3D = bestPoints3D["points"];
+		console.log(bestPoints3D);
 
+		// get average world size ?
+		// POINT DISTRIBUTION ?
+
+		// get baseline size
+		var posA = new V3D(0,0,0);
+			absA.multV3DtoV3D(posA,posA);
+		var posB = new V3D(0,0,0);
+			absB.multV3DtoV3D(posB,posB);
+		var distanceAB = V3D.sub(posA,posB).length();
+		// console.log("distanceAB: "+distanceAB);
+
+
+		// set trans error movement ~ 1/1000 of baseline
+		// TODO: try out 1 sigma of 3D point cloud
+		var errorGDDistance = distanceAB * 1E-6;
+		// set angle error movement ~ 1 degree to start
+		var errorGDRadians = Code.radians(1.0) * 1E-3;
+
+		var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
+	// console.log("epsilon: "+epsilon);
+		// nonlinearly resolve
+		//var listPoints2DA = [];
+		//var listPoints2DB = [];
+		//var listPoints2D = [listPoints2DA,listPoints2DB];
+		var listPoints2D = [];
+		for(var i=0; i<bestPoints3D.length; ++i){
+			var point3D = bestPoints3D[i];
+			//console.log(point3D);
+			var point2DA = point3D.pointForView(viewA);
+			var point2DB = point3D.pointForView(viewB);
+			//listPoints2DA.push(point2DA.point2D());
+			//listPoints2DB.push(point2DB.point2D());
+			var entryP3D = [];
+			var entryP2D = [point2DA.point2D(), 0];
+			entryP3D.push(entryP2D);
+			var entryP2D = [point2DB.point2D(), 1];
+			entryP3D.push(entryP2D);
+			listPoints2D.push(entryP3D);
+		}
+		var listExts = [extA,extB];
+		var listKs = [KA,KB];
+		var listKinvs = [invKA,invKB];
+		var selectViewIndex = 1; // move B around
+
+		var maxIterations = 100; // 100 - 1000
+		// var maxIterations = 10000;
+		var negativeIsBad = true;
+
+
+		// console.log(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad);
+		var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
+		var P = result["P"];
+		console.log(P);
+		//selectView.absoluteTransform(P);
+
+		// AVERAGE 2 TRANSFORMS => doesn't seem to 
+		// P = Code.averageTransforms3D([viewB.absoluteTransform(), P]);
+
+
+		// console.log("WAS: "+viewB.absoluteTransform());
+		viewB.absoluteTransform(P);
+		// console.log(" IS: "+viewB.absoluteTransform());
+
+		// recalculate all points:
+		// world.copyRelativeTransformsFromAbsolute();
+		/*
+		for(var p=0; p<sharedPoints3DAB.length; ++p){
+			sharedPoints3DAB[p].point(null);
+		}
+		world.updatePoints3DNullLocations(sharedPoints3DAB);
+		*/
+		// world.updateP3DPatchesFromAbsoluteOrientationChange();
+
+		// want to update hte point location ONLY BASED ON VIEW A & B
+		// TODO: what about other established points?
+		//var location3D = point3D.globalPoint3DLinear();
+		
+		// possibly updated values:
+		extA = viewA.absoluteTransform();
+		extB = viewB.absoluteTransform();
+		extrinsics = [extA,extB];
+		var points2D = [];
+		for(var p=0; p<sharedPoints3DAB.length; ++p){
+			var point3D = sharedPoints3DAB[p];
+			var point2DA = point3D.pointForView(viewA);
+			var point2DB = point3D.pointForView(viewB);
+			//var points2D = [point2DA.point2D(),point2DB.point2D()];
+			var p2DA = point2DA.point2D();
+			var p2DB = point2DB.point2D();
+			points2D[0] = p2DA;
+			points2D[1] = p2DB;
+			var location3D = R3D.triangulatePointDLTList(points2D, listExts, listKinvs);
+			world.updatePoint3DLocation(point3D,location3D);
+		}
+
+		console.log("loop end");
+
+	} // iteration
 
 	//throw "...";
 }

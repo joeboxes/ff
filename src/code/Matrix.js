@@ -600,7 +600,7 @@ Matrix.transform3DRotateZ = function(a,angle){
 	var b = Matrix._transformTemp3D.fromArray([c,-s,0.0,0.0, s,c,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0]);
 	return Matrix.mult(b,a);
 }
-Matrix.transform3DScalePoints = function(a,x,y,z){
+Matrix.transform3DScalePoints = function(a,x,y,z){ // this moves the origin - tx,ty,yz
 	if(y===undefined){
 		y = x;
 	}

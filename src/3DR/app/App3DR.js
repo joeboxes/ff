@@ -3715,6 +3715,12 @@ console.log("              "+i+"................................................
 
 		var K = view["K"];
 console.log(K);
+if(K.rowCount()==0 || K.colCount()==0){
+	console.log("K not set up");
+	throw "?"
+	continue;
+}
+
 // console.log(K);
 // 		if(!K || K.cols()==0){
 // 			K = new Matrix(3,3).fromArray([1,0,0, 0,1,0, 0,0,1]);
@@ -3751,7 +3757,6 @@ console.log(bind)
 // throw ".."
 			var wid = image.width;
 			var hei = image.height;
-
 			var fx = K.get(0,0);
 			var fy = K.get(1,1);
 			var cx = K.get(0,2);

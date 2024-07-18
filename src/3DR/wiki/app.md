@@ -427,18 +427,11 @@ MISSING:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+sequentiallyOptimizeViews
+var modeModelReconstruction = true;
 
 
 NEXT TASK:
-	x print out list of sequential views
-	x load 3D points?
-	x refamiliarize w/ gradient descene & each variable
-	x as GD error reduces, epsilon should also reduce, how to do this?
-	- test case for needing to increase epsilon?
-		- noise?
-	- test GD on differently-scaled units - known problem
-
-	- optimize first pair
 	- start optimizing additional views:
 		- reprojection error
 		- 3D surface distance error 3+ pts [projected surface point]
