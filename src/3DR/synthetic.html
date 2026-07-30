@@ -8,7 +8,7 @@ function pageLoadedFxn(){
 	var ff = new FF("../code/",ffLoadedFxn);
 }
 function ffLoadedFxn(){
-	(new ScriptLoader("./",["R3D.js","Synthetic.js"],this,classesLoadedFxn)).load();
+	(new ScriptLoader("./",["Synthetic.js"],this,classesLoadedFxn)).load();
 }
 function classesLoadedFxn(){
 	var s = new Synthetic();

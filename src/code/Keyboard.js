@@ -47,6 +47,9 @@ Keyboard.KEY_NUM_6 = 54;
 Keyboard.KEY_NUM_7 = 55;
 Keyboard.KEY_NUM_8 = 56;
 Keyboard.KEY_NUM_9 = 57;
+Keyboard.KEY_COMMA = 188;
+Keyboard.KEY_PERIOD = 190;
+
 Keyboard.KEY_COMMAND = 91; // mac
 Keyboard.EVENT_KEY_UP = "kbdevtkup";
 Keyboard.EVENT_KEY_DOWN = "kbdevtkdn";

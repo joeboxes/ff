@@ -115,6 +115,19 @@ nonlinear error:
 		angle( vector(a), vector(b) )
 
 
+
+doing vector add is only a coarse approx
+ using mass / moment movement value is better
+ 	- equa-distance error when data is ~ exactly uniform
+
+
+
+
+
+
+
+
+
 ### 3D translation:
 
 

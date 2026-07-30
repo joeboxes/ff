@@ -739,6 +739,7 @@ Getting married at the beginning of the year, adding people at the end of the ye
 
 
 
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 [@0:27]
@@ -804,6 +805,19 @@ b: [nam nay lam con choi duh]
 g: [teh khom ahn]
 
 ...
+
+
+
+NEWER COVER???
+
+https://www.youtube.com/watch?v=Vlf4Pkd9h48
+
+
+
+
+Thiên Duyên Tiền Định
+
+
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

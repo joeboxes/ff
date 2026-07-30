@@ -215,6 +215,12 @@ var alp = null; // DNE
 	img.unset();
 	return {width:wid, height:hei, red:red, grn:grn, blu:blu, alp:alp};
 }
+Stage.prototype.canvasWidth = function(){
+	return this._canvas.width();
+}
+Stage.prototype.canvasHeight = function(){
+	return this._canvas.height();
+}
 Stage.prototype.getFloatARGBAsImage = function(a,r,g,b, wid,hei, matrix, type, onloadFxn){
 	var argb = ImageMat.ARGBFromARGBFloats(a,r,g,b);
 	return this.getARGBAsImage(argb, wid,hei,matrix,type, onloadFxn);
@@ -262,7 +268,7 @@ Stage.prototype.renderImage = function(wid,hei,obj, matrix, type, onloadFxn){ //
 	return this._toImage(wid,hei, type, onloadFxn);
 }
 Stage.prototype._setupRenderCanvas = function(wid,hei,matrix){
-	var presScale = this._canvas.presentationScale();;
+	var presScale = this._canvas.presentationScale();
 	this._renderCanvas.clear();
 	this._renderCanvas.width(wid/presScale);
 	this._renderCanvas.height(hei/presScale);
@@ -318,7 +324,7 @@ Stage.prototype.render = function(){
 	this.alertAll(Stage.EVENT_ON_EXIT_FRAME,this._time);
 }
 Stage.prototype._enterFrame = function(e){
-	++this._time;
+	++this._time;;
 	this.render();
 }
 Stage.prototype.start = function(){

@@ -7071,6 +7071,11 @@ Stereopsis.World.prototype.sharedPoints3D = function(viewA,viewB){
 Stereopsis.World.prototype.sequentiallyOptimizeViews = function(something){
 	var world = this;
 
+
+	// var str = world.toYAMLString();
+	// console.log(str);
+	// throw "..."
+
 	// set first 2 default views [highest connectivity / lowest average sigma error (R,...)]
 	var workOrderedViews = this.sequentiallyViewsOrder();
 	console.log(workOrderedViews);
@@ -7226,7 +7231,8 @@ console.log(viewB.absoluteTransform()+"");
 			// optimize viewC transform 
 			// world.optimizeErrorReprojectionPairMoveViewB(viewA,viewB,points3DAB);
 
-		world.optimizeErrorReprojectionGroupMoveView(viewC,adjacentViews,sharedPoints3D);
+		world.optimizeErrorReprojectionGroupMoveView(viewC,adjacentViews,sharedPoints3D,    Stereopsis.World.OPT_METHOD_NEAREST_POINT_DISTANCE_ERROR);
+		// world.optimizeErrorReprojectionGroupMoveView(viewC,adjacentViews,sharedPoints3D,    Stereopsis.World.OPT_METHOD_REPROJECTION_ERROR);
 
 		console.log("new C matrix. ?");
 
@@ -7423,10 +7429,207 @@ NOTES:
 // throw "sequentiallyOptimizeViews";
 }
 
-Stereopsis.World.prototype.bestSharedPointsForViewPair = function(viewA,viewB,sharedPoints3DAB, minimumPointCount, maximumReduceIterations){
+Stereopsis.World.prototype.bestCompareSurfacePlanesForViewPair = function(viewA,viewB,sharedPoints3DAB, establishedViewList, minimumPointCount, maximumReduceIterations, maximumDistance2D, filteringSigma){ // 
+	throw "bestCompareSurfacePlanesForViewPair"
+	// plane: point & normal
+	// use 3+ points in 3D space to get the surface location
+}
+
+
+// var bestPointsDatas = world.bestCompareSurfacePointsForViewPair(viewAdj,viewMove,sharedPoints3DAB, establishedViews);
+// 3D points filtered on estimated 3D distance
+Stereopsis.World.prototype.bestCompareSurfacePointsForViewPair = function(viewA,viewB,sharedPoints3DAB, establishedViewList, minimumPointCount, maximumReduceIterations, maximumDistance2D, filteringSigma){ // 
+	// viewA is assumed to be in established view - stationary / source
+	// viewB is the 'putative' new view to add - moving view
+	var viewAID = viewA.id();
+	var viewBID = viewB.id();
 	world = this;
 	var minimumPoints3D = Code.valueOrDefault(minimumPointCount,100);
 	var maxReduceIterations = Code.valueOrDefault(maximumReduceIterations,25);
+	var maxDistance2D = Code.valueOrDefault(maximumDistance2D,0.1); // 1% to 5%
+	var sigmaLimit = Code.valueOrDefault(filteringSigma,1.5); // 1.0 to 2.0
+
+	var pointSpaceA = viewA.pointSpace();
+
+
+	var establishedViewLookup = {};
+
+
+console.log(establishedViewList);
+console.log(world.toViewArray());
+console.log(world._views);
+// throw "?"
+	for(var i=0; i<establishedViewList.length; ++i){
+		var view = establishedViewList[i];
+		establishedViewLookup[view.id()] = view;
+	}
+
+/*
+all: 0, 1, 2, 3, 4
+established: 1, 3
+
+pair: 3 & 2 [2 is new one]
+
+*/
+
+console.log("VIEW PAIR: "+viewA.id()+" & "+viewB.id());
+
+console.log(establishedViewLookup);
+// throw "establishedViewLookup";
+	var neighbor2DCount = 3; // want 3-5 neighbors to make a plane // want ~3 points to get a center point
+	var pointCriteria = function(p2D){
+		var p3D = p2D.point3D();
+		// console.log("pointCriteria: ");
+		// console.log(p2D);
+		// console.log(p3D);
+		var points = p3D.toPointArray();
+		// console.log(points);
+		var valids = [];
+		for(var p=0; p<points.length; ++p){
+			var point = points[p];
+			var viewID = point.view().id();
+			//if(viewID != viewBID && establishedViewLookup[viewID]){ // SHOULD NOT HAVE??
+			if(establishedViewLookup[viewID]){
+				valids.push(point);
+				// valids.push(viewID);
+			}
+		}
+		// console.log(valids+"");
+		// console.log(valids.length);
+		
+		/*
+		var p3D = p.point3D();
+		if(p3D==point3D){
+			return false;
+		}
+		if(p3D.hasView(viewA) && p3D.hasView(viewB)){
+			return true;
+		}
+		return false;
+		*/
+		// throw "pointCriteria";
+		if(valids.length>=2){
+			// console.log(valids);
+			// throw "pointCriteria";
+			return true;
+		}
+	}
+
+	var dataEntries = [];
+// 1-3 shared points
+// looking for a 2s
+	console.log("sharedPoints3DAB: "+sharedPoints3DAB.length);
+	for(var p=0; p<sharedPoints3DAB.length; ++p){
+		var point3DAB = sharedPoints3DAB[p];
+		// console.log(point3DAB);
+
+		var point2DA = point3DAB.pointForView(viewA);
+		var point2DB = point3DAB.pointForView(viewB);
+
+
+		var pointB = point2DB.point2D();
+
+		var pointA = point2DA.point2D();
+		// console.log("pointA: "+pointA);
+		var neighbors = pointSpaceA.kNN(pointA, neighbor2DCount, pointCriteria);
+		// console.log("neighbors: "+neighbors.length);
+		// average P3D:
+		var averageP3D = new V3D();
+		var points3D = [];
+		if(neighbors.length>0){
+			for(var n=0; n<neighbors.length; ++n){
+				var n3D = neighbors[n].point3D();
+				// console.log(n3D);
+				var p3D = n3D.point();
+				points3D.push(p3D);
+				// console.log(p3D+"");
+				averageP3D.x += p3D.x;
+				averageP3D.y += p3D.y;
+				averageP3D.z += p3D.z;
+			}
+			averageP3D.x /= neighbors.length;
+			averageP3D.y /= neighbors.length;
+			averageP3D.z /= neighbors.length;
+		}else {
+			console.log(neighbors);
+			throw "0 neighbors";
+		}
+		// console.log("averageP3D: "+averageP3D);
+// [point2DA, point2DB, plane-point, plane-normal]
+		var plane = Code.planeFromPoints3D(averageP3D, points3D);
+		// console.log(averageP3D+" & "+points3D);
+		// console.log(plane);
+		normal3D = plane["normal"];
+
+
+		var error = "?";
+		var list = [pointA,viewAID, pointB,viewBID, averageP3D, normal3D, error]; // if doing a estimated surface: get covariant matrix
+		dataEntries.push(list);
+		/*
+		Code.closestPointPlane3D = function(q,n, p){
+		Code.planeFromPoints3D = function(center, points, weights, cov){
+		*/
+		// throw "..."
+	}
+
+
+
+	console.log("dataEntries");
+	console.log(dataEntries);
+
+	throw "drop high-error distance points"
+
+	console.log("dataEntries");
+	console.log(dataEntries);
+	return dataEntries;
+	/*
+
+	
+
+	bestCompareSurfacePointsForViewPair
+
+	find all points in viewA that also have a viewB => bestSharedPointsForViewPair (with infinitely high sigma / max count)
+	var points3DAB = world.sharedPoints3D(viewA,viewB);
+
+		estimate 3D location
+		
+	for each point:
+		in viewA: find nearest neighbor point (2D) to source point that:
+			- has an established 3D point:
+				- at least 2 supporting views for the point (obviously including viewA)
+					(which 2 views to use? A & all of the others ? average the result?)
+		- estimate the 3D position of the point
+	
+	filter on 3D distance
+
+
+A: 
+B: 
+
+	LIST:
+	[...
+	[point2DA, point2DB, plane-point, plane-normal]
+	...]
+
+
+
+	- go thru shared points
+	- find closest point in adj view that is also an established view
+	- limit on some % distance of image size (1-5%)
+	- filter on distance between estimated point & established point to get lowest error list
+
+
+
+	*/
+	//throw "bestCompareSurfacePointsForViewPair";
+}
+
+// 3D points filtered on reprojection error
+Stereopsis.World.prototype.bestSharedPointsForViewPair = function(viewA,viewB,sharedPoints3DAB, minimumPointCount, maximumReduceIterations, filteringSigma){
+	world = this;
+	var minimumPoints3D = Code.valueOrDefault(minimumPointCount,100);
+	var maxReduceIterations = Code.valueOrDefault(maximumReduceIterations,25);
+	var sigmaLimit = Code.valueOrDefault(filteringSigma,1.5); // 1.0 to 2.0
 	
 	// var bestPoints3DAB = Code.copyArray(sharedPoints3DAB);
 
@@ -7498,7 +7701,7 @@ Stereopsis.World.prototype.bestSharedPointsForViewPair = function(viewA,viewB,sh
 		var mean = Code.mean(errors);
 		var sigma = Code.stdDev(errors, min);
 		// console.log("errors r: "+mean+" +/- "+sigma);
-		var sigmaLimit = 1.5; // 1.0 to 2.0
+		
 		var limit = min + sigmaLimit*sigma;
 		return limit;
 	}, minimumPoints3D, maxReduceIterations);
@@ -7507,8 +7710,18 @@ Stereopsis.World.prototype.bestSharedPointsForViewPair = function(viewA,viewB,sh
 	return {"points":bestPoints3D};
 }
 
-Stereopsis.World.prototype.optimizeErrorReprojectionGroupMoveView = function(viewMove,sharedViews,sharedPoints3D){
+Stereopsis.World.OPT_METHOD_REPROJECTION_ERROR = 0;
+Stereopsis.World.OPT_METHOD_NEAREST_POINT_DISTANCE_ERROR  = 1;
+Stereopsis.World.OPT_METHOD_NEAREST_PLANE_DISTANCE_ERROR = 2;
+Stereopsis.World.OPT_METHOD_NEAREST_2VECTOR_ANGLE_ERROR = 3;
+Stereopsis.World.OPT_METHOD_NEAREST_TRIANGLE_NORMAL_ERROR = 4;
+Stereopsis.World.OPT_METHOD_NEAREST_TRIANGLE_3AXIS_ERROR = 5;
+Stereopsis.World.OPT_METHOD_OTHER = 6;
 
+Stereopsis.World.prototype.optimizeErrorReprojectionGroupMoveView = function(viewMove,sharedViews,sharedPoints3D, optimizationMethodToUse){
+	optimizationMethodToUse = Code.valueOrDefault(optimizationMethodToUse, Stereopsis.World.OPT_METHOD_REPROJECTION_ERROR);
+	console.log(":optimizationMethodToUse: "+optimizationMethodToUse);
+// throw "optimizeErrorReprojectionGroupMoveView";
 
 	var iterationCount = 5; // 3-5
 	for(var iteration=0; iteration<iterationCount; ++iteration){
@@ -7519,15 +7732,20 @@ Stereopsis.World.prototype.optimizeErrorReprojectionGroupMoveView = function(vie
 
 		var posMove = new V3D(0,0,0);
 			absMove.multV3DtoV3D(posMove,posMove);
-		var distanceList = [];
+		
+		// COMMON
 
-		// create point entries
-		var listPoints2D = [];
+		var viewIDToIndexHash = {};
+			viewIDToIndexHash[viewMove.id()] = 0;
+
+		// reuse vars
+		var distanceList = [];
 		var listExts = [extMove];
 		var listKs = [KMove];
 		var listKinvs = [invKMove];
 		for(var j=0; j<sharedViews.length; ++j){
 			var viewAdj = sharedViews[j];
+			viewIDToIndexHash[viewAdj.id()] = j+1;
 			var absAdj = viewAdj.absoluteTransformInverse();
 			var extAdj = viewAdj.absoluteTransform();
 			var invKAdj = viewAdj.Kinv();
@@ -7535,53 +7753,180 @@ Stereopsis.World.prototype.optimizeErrorReprojectionGroupMoveView = function(vie
 			listExts.push(extAdj);
 			listKs.push(KAdj);
 			listKinvs.push(invKAdj);
-
-
 			var posAdj = new V3D(0,0,0);
 				absAdj.multV3DtoV3D(posAdj,posAdj);
 			var distanceViews = V3D.sub(posMove,posAdj).length();
 			distanceList.push(distanceViews);
+		}
 
-			var bestPoints3D = world.bestSharedPointsForViewPair(viewMove,viewAdj,sharedPoints3D[j]);
-			bestPoints3D = bestPoints3D["points"];
-			for(var i=0; i<bestPoints3D.length; ++i){
-				var point3D = bestPoints3D[i];
-				var point2DA = point3D.pointForView(viewMove);
-				var point2DB = point3D.pointForView(viewAdj);
-				var entryP3D = [];
-				var entryP2D = [point2DA.point2D(), 0];
-				entryP3D.push(entryP2D);
-				var entryP2D = [point2DB.point2D(), j+1];
-				entryP3D.push(entryP2D);
-				listPoints2D.push(entryP3D);
+		var averageViewDistance = Code.averageNumbers(distanceList);
+
+
+
+
+		if(optimizationMethodToUse==Stereopsis.World.OPT_METHOD_REPROJECTION_ERROR){
+			
+
+		// create point entries
+			var listPoints2D = [];
+			for(var j=0; j<sharedViews.length; ++j){
+				var viewAdj = sharedViews[j];
+
+				var bestPoints3D = world.bestSharedPointsForViewPair(viewMove,viewAdj,sharedPoints3D[j]);
+				bestPoints3D = bestPoints3D["points"];
+				for(var i=0; i<bestPoints3D.length; ++i){
+					var point3D = bestPoints3D[i];
+					var point2DA = point3D.pointForView(viewMove);
+					var point2DB = point3D.pointForView(viewAdj);
+					var entryP3D = [];
+					var entryP2D = [point2DA.point2D(), 0];
+					entryP3D.push(entryP2D);
+					var entryP2D = [point2DB.point2D(), j+1];
+					entryP3D.push(entryP2D);
+					listPoints2D.push(entryP3D);
+				}
+
 			}
 
-		}
-		var averageViewDistance = Code.averageNumbers(distanceList);
-		// console.log('averageViewDistance: '+averageViewDistance);
-		// console.log(bestPoints3D);
-		// console.log(listExts,listKs,listKinvs);
-		
+			// set trans error movement ~ 1/1000 of baseline
+			// TODO: try out 1 sigma of 3D point cloud
+			var errorGDDistance = averageViewDistance * 1E-6;
+			// set angle error movement ~ 1 degree to start
+			var errorGDRadians = Code.radians(1.0) * 1E-3;
+			var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
 
-		// set trans error movement ~ 1/1000 of baseline
-		// TODO: try out 1 sigma of 3D point cloud
-		var errorGDDistance = averageViewDistance * 1E-6;
-		// set angle error movement ~ 1 degree to start
-		var errorGDRadians = Code.radians(1.0) * 1E-3;
-		var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
-
-		var selectViewIndex = 0; // move around
-		var maxIterations = 100; // 100 - 1000
-		// var maxIterations = 10000;
-		var negativeIsBad = true;
+			var selectViewIndex = 0; // move around
+			var maxIterations = 100; // 100 - 1000
+			// var maxIterations = 10000;
+			var negativeIsBad = true;
 
 
 		// // console.log(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad);
-		var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
-		console.log(result);
-		var P = result["P"];
+		
+			var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
+			console.log(result);
+			var P = result["P"];
+			viewMove.absoluteTransform(P);
 
-		viewMove.absoluteTransform(P);
+
+		}else if(optimizationMethodToUse==Stereopsis.World.OPT_METHOD_NEAREST_POINT_DISTANCE_ERROR){ // ......................................................
+//throw "RICHIE - "+optimizationMethodToUse;
+			var minSharedPointsStart = 10; // 
+
+// function(viewA,viewB,sharedPoints3DAB, establishedViewList, minimumPointCount, maximumReduceIterations, maximumDistance2D, filteringSigma){ // 
+			var establishedViews = [];
+			for(var j=0; j<sharedViews.length; ++j){
+				var viewAdj = sharedViews[j];
+				establishedViews.push(viewAdj);
+			}
+
+			var surfaceDatas = [];
+			for(var j=0; j<sharedViews.length; ++j){
+				var viewAdj = sharedViews[j];
+				var sharedPoints3DAB = sharedPoints3D[j];
+				//var sharedPoints3D = world.sharedPoints3D(viewMove, viewAdj);
+				//console.log(sharedPoints3D);
+				//var bestPoints3D = world.bestSharedPointsForViewPair(viewMove,viewAdj,sharedPoints3D[j], establishedViews);
+				if(sharedPoints3DAB.length<minSharedPointsStart){
+					console.log("not enough points: "+sharedPoints3DAB.length+" < "+minSharedPointsStart);
+					continue;
+				}
+
+				// TODO: do a sigma drop over ALL shared point counts w/ some minimum
+// console.log("RICHIE - D");
+				var bestPointsDatas = world.bestCompareSurfacePointsForViewPair(viewAdj,viewMove,sharedPoints3DAB, establishedViews);
+
+
+//
+
+
+				console.log(bestPointsDatas);
+				// convert viewIDs to lookup values
+				for(var k=0; k<bestPointsDatas.length; ++k){
+					var list = bestPointsDatas[k];
+					// console.log(list);
+					// throw "?";
+					list[1] = viewIDToIndexHash[ list[1] ];
+					list[3] = viewIDToIndexHash[ list[3] ];
+					// console.log(list);
+					// throw "?";
+				}
+				console.log(bestPointsDatas);
+				// surfaceDatas.push(bestPointsDatas);
+				Code.arrayPushArray(surfaceDatas, bestPointsDatas);
+
+				//var pointSet = world.bestCompareSurfacePointsForViewPair();
+				//console.log(pointSet);
+				// throw "?"
+				// viewMove
+
+				var selectViewIndex = 0; // move around
+				var maxIterations = 100; // 100 - 1000
+				// var maxIterations = 10000;
+				var negativeIsBad = true;
+				var errorGDDistance = averageViewDistance * 1E-6;
+				// set angle error movement ~ 1 degree to start
+				var errorGDRadians = Code.radians(1.0) * 1E-3;
+				var epsilon = [errorGDDistance,errorGDDistance,errorGDDistance, errorGDRadians,errorGDRadians,errorGDRadians];
+
+				var result = R3D.optimizeMultipleCameraExtrinsicSurfacePointPointNonlinear(listExts, listKs, listKinvs, selectViewIndex, surfaceDatas, maxIterations, negativeIsBad,  epsilon);
+				// console.log(result);
+				console.log(result);
+				var P = result["P"];
+				viewMove.absoluteTransform(P);
+
+				// throw "NOW"
+			}
+// console.log("RICHIE - E");
+
+//			throw "do optimization"
+
+
+		// optimizeMultipleCameraExtrinsicDLTNonlinear
+
+			/*
+- go thru shared points
+	- find closest point in adj view that is also an established view
+	- limit on some % distance of image size (1-5%)
+	- filter on distance between estimated point & established point to get lowest error list
+
+
+	[POINT-2D-MOVE,0, POINT-2D-ADJ,#, point3d-established]
+
+var result = R3D.optimizeMultipleCameraExtrinsicSurfacePointPointNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
+
+
+
+			*/
+
+
+			// throw "OPT_METHOD_NEAREST_POINT_DISTANCE_ERROR";
+
+
+
+			// var result = R3D.optimizeMultipleCameraExtrinsicDLTNonlinear(listExts, listKs, listKinvs, selectViewIndex, listPoints2D, maxIterations, negativeIsBad,  epsilon);
+
+
+		}else{
+/*
+
+Stereopsis.World.OPT_METHOD_NEAREST_PLANE_DISTANCE_ERROR = 2;
+	- estimate a plane from 3 points
+
+[POINT-2D-MOVE,0, POINT-2D-ADJ,#, estimated point on plane, estimated plane normal]
+
+Stereopsis.World.OPT_METHOD_NEAREST_2VECTOR_ANGLE_ERROR = 3;
+
+[POINT-2D-MOVE,0, POINT-2D-ADJ,#, estimated point on plane, estimated plane normal]
+
+Stereopsis.World.OPT_METHOD_NEAREST_TRIANGLE_NORMAL_ERROR = 4;
+Stereopsis.World.OPT_METHOD_NEAREST_TRIANGLE_3AXIS_ERROR = 5;
+*/
+
+			throw "optimizationMethodToUse";
+		}
+
+		
 
 		console.log("update point locations in 3D")
 		// possibly updated values:
@@ -7612,7 +7957,7 @@ Stereopsis.World.prototype.optimizeErrorReprojectionGroupMoveView = function(vie
 
 Stereopsis.World.prototype.optimizeErrorReprojectionPairMoveViewB = function(viewA,viewB,sharedPoints3DAB){ // move B around nonlinearly using reprojection error of known 2D points
 	var world = this;
-
+// TODO: this should now be a simpler version of optimizeErrorReprojectionGroupMoveView
 
 	var iterationCount = 5; // 3-5
 	for(var iteration=0; iteration<iterationCount; ++iteration){

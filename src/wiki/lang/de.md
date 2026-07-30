@@ -1,3 +1,8 @@
+
+
+
+
+
 ## german
 
 Bronze, Silver, Gold, Sapphire, Ruby, Emerald, Amethyst, Pearl, Obsidian, Diamond - 10
@@ -2255,7 +2260,7 @@ der / den (when noun is at end of verb?)
 
 
 
-
+Polarkreis 18 - Allein allein
 
 
 
@@ -3233,6 +3238,8 @@ Faun - Tanz mit mir
 
 Heidis Küken - Das kleine Küken piept
 https://www.youtube.com/watch?v=WUBYglJibTQ
+https://www.youtube.com/watch?v=vFQK8qjMefA
+
 
 | du | | en |
 |-|-|-|
@@ -3550,6 +3557,8 @@ Wir gehen zusammen, nicht allein
 
 Mickie Krause - Jan Pillemann Otze [Fotze]
 https://www.youtube.com/watch?v=hp_rf3EXs0w
+https://www.youtube.com/watch?v=kO032Vu72xU
+
 
 | du | | en |
 |-|-|-|
@@ -3929,6 +3938,7 @@ Da ist noch mehr zwischen uns
 
 NENA 99 Luftballons
 https://www.youtube.com/watch?v=7aLiT3wXko0
+https://www.youtube.com/watch?v=TMSlTQmDLx4
 Liv https://www.youtube.com/watch?v=hIIVK0NgK38
 En https://www.youtube.com/watch?v=L2IYUehYj0I
 

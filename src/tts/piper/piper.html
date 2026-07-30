@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piper TTS - Frontend Only</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #status { margin-top: 10px; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <h2>Piper TTS (WASM)</h2>
+    <textarea id="textInput">This runs entirely in your browser using Piper and WebAssembly.</textarea>
+    <br>
+    <button id="speakBtn">Speak</button>
+    <div id="status">Ready to load model...</div>
+
+    <script type="module">
+        // 1. Import directly from CDN
+        import * as tts from './index.js';
+
+        const speakBtn = document.getElementById('speakBtn');
+        const statusDiv = document.getElementById('status');
+        const textInput = document.getElementById('textInput');
+
+        // Voice ID: You can swap this for others (e.g., 'en_US-hfc_male-medium')
+        //const VOICE_ID = 'en_US-hfc_female-medium'; 
+        //const VOICE_ID = 'en_US-hfc_male-medium';
+        //const VOICE_ID = 'en_US-ryan-medium';
+        const VOICE_ID = 'en_US-richie-medium';
+        
+
+        speakBtn.addEventListener('click', async () => {
+            if (!textInput.value) return;
+
+            speakBtn.disabled = true;
+            statusDiv.textContent = "Downloading model & synthesizing... (First run takes time)";
+
+            try {
+                // 2. Synthesize audio
+                // The library automatically handles downloading the model and WASM blobs
+                const wav = await tts.predict({
+                    text: textInput.value,
+                    voiceId: VOICE_ID, 
+                });
+
+                // 3. Play the audio
+                const audio = new Audio();
+                audio.src = URL.createObjectURL(wav);
+                audio.play();
+                
+                statusDiv.textContent = "Playing...";
+                audio.onended = () => {
+                    speakBtn.disabled = false;
+                    statusDiv.textContent = "Done.";
+                };
+
+            } catch (err) {
+                console.error(err);
+                statusDiv.textContent = "Error: " + err.message;
+                speakBtn.disabled = false;
+            }
+        });
+
+        async function logAllVoiceIds() {
+            // This is the official JSON map of all Piper voices
+            const response = await fetch('https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json');
+            const voices = await response.json();
+            
+            // Get just the IDs
+            const voiceIds = Object.keys(voices);
+            
+            console.log(`Found ${voiceIds.length} voices.`);
+            console.log(voiceIds); // Prints: ["ar_JO-kareem-low", "ca_ES-upc_ona-medium", ...]
+            
+            // Filter for English only
+            const englishVoices = voiceIds.filter(id => id.startsWith('en_'));
+            console.log("English Voices:", englishVoices);
+        }
+
+        logAllVoiceIds();
+
+    </script>
+</body>
+</html>

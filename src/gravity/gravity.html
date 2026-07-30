@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Gravity</title>
+<script src="../code/FF.js"></script>
+</head>
+<script type="text/javascript">
+function pageLoadedFxn(){
+	var ff = new FF("../code/",ffLoadedFxn);
+}
+function ffLoadedFxn(){
+	(new ScriptLoader("./",["LineArt.js"],this,classesLoadedFxn)).load();
+}
+function classesLoadedFxn(){
+	var grav = new Gravity();
+}
+</script>
+<body onload="pageLoadedFxn();">
+</body>
+</html>

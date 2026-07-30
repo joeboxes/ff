@@ -9,7 +9,7 @@ function pageLoadedFxn(){
 }
 function defaultClassesProgressFxn(o){}
 function defaultClassesLoadedFxn(){
-	scriptLoader = new ScriptLoader("./",["../3DR/R3D.js","SurfaceTest.js"],this,customClassesLoadedFxn,customClassesProgressFxn);
+	scriptLoader = new ScriptLoader("./",["SurfaceTest.js"],this,customClassesLoadedFxn,customClassesProgressFxn);
 	scriptLoader.load();
 }
 function customClassesProgressFxn(o){}

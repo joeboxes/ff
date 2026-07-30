@@ -3366,7 +3366,6 @@ ImageMat.normalFloatAboutZero = function(data){
 	}
 	return data;
 }
-
 ImageMat.normalFloatNegToOne = function(data){
 	var i, len = data.length;
 	var max = data[0], min = data[0];
@@ -3398,7 +3397,7 @@ ImageMat.applyFxnFloat = function(data,fxn){
 		data[i] = fxn(data[i]);
 	}
 }
-ImageMat.invertFloat01 = function(data){
+ImageMat.invertFloat01 = function(data){ // flip 0 1
 	var i, len = data.length;
 	for(i=0;i<len;++i){
 		data[i] = 1.0-data[i];
@@ -4844,6 +4843,28 @@ ImageMat.prototype.normalize = function(){ // convert existing scale to 0-1
 	ImageMat.scaleFloatSame(this.blu(), scale);
 }
 
+ImageMat.prototype.distanceFromColor = function(color){
+	var width = this.width();
+	var height = this.height();
+	var red = this.red();
+	var grn = this.grn();
+	var blu = this.blu();
+	var count = width*height;
+	var grayscale = Code.newArrayZeros();
+	var pixel = new V3D();
+	for(var i=0; i<count; ++i){
+		pixel.x = red[i];
+		pixel.y = grn[i];
+		pixel.z = blu[i];
+		var distance = V3D.distance(color,pixel);
+		grayscale[i] = distance;
+	}
+	// console.log(color);
+	// console.log(grayscale);
+	// throw "..."
+	return {"value":grayscale, "width":width, "height":height};
+}
+
 ImageMat.prototype.getSubRect = function(x,y,w,h){
 	var wid = this.width();
 	var hei = this.height();
@@ -5558,6 +5579,7 @@ ImageMatScaled.prototype.getScaledImage = function(scale, doCeil){
 		resultHeight = Math.ceil(scale*hei);
 	}
 	var resultScale = (resultWidth/wid + resultHeight/hei)*0.5;
+// console.log("RESULT: "+resultScale+" @ "+resultWidth+"x"+resultHeight);
 	// inverse scale from new to old
 	resultScale = 1.0/resultScale;
 	var affine = new Matrix2D();

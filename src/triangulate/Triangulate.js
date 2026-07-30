@@ -14,7 +14,8 @@ Triangulate.prototype.handleLoaded = function(){
 	// this.doTriangulation();
 	// this._refreshDisplay();
 
-	this.doBeaconStuff();
+	// this.doBeaconStuff();
+	this.doUWBStuff();
 
 
 }
@@ -48,6 +49,476 @@ this._doY = -300;
 	this.drawDot( V2D.add(V2D.scale(calculated.location,this._displayScale), new V2D(this._doX,this._doY)), 0x9900FF00,0xCC009900, 3.0);
 
 }
+
+
+/*
+want a position in 3D space = 3 unknowns
+minimum 4 anchors
+	- known position
+	- distance estimate w/ static or dynamic error
+
+*/
+Triangulate.prototype.doUWBStuff = function(){
+	console.log("doUWBStuff");
+	//
+	//var errorStatic = 0.1;
+	//var errorPower = 0.0;
+	// var errorDistance = 0.0; // percent error
+	var errorDistanceRelative = 0.1; // percent error scaled with distance
+	var errorDistanceStatic = 0.1; // error static
+	var maximumRange = 1E9;
+	var anchors = [];
+		anchors.push( new Tri.AnchorUWB(new V3D(0,0,0), errorDistanceRelative, errorDistanceStatic) );
+		anchors.push( new Tri.AnchorUWB(new V3D(1,0,0), errorDistanceRelative, errorDistanceStatic) );
+		anchors.push( new Tri.AnchorUWB(new V3D(1,0,1), errorDistanceRelative, errorDistanceStatic) );
+		anchors.push( new Tri.AnchorUWB(new V3D(0,1,1), errorDistanceRelative, errorDistanceStatic) );
+
+	var tag = new Tri.TagUWB();
+	//tag.knownLocation(new V3D(2.0,0.1,0.25));
+	tag.knownLocation(new V3D(0.5, 0.1, 0.25));
+	var tags = [tag];
+
+
+
+
+	
+	var display = new DO();
+	this._root.addChild(display);
+	display.matrix().scale(1,-1);
+	display.matrix().translate(200,400);
+
+	
+
+this._uwbTags = tags;
+this._uwbAnchors = anchors;
+this._uwbDisplay = display;
+
+
+
+	this.iterateUWBStuff();
+	this.drawUWBStuff();
+
+}
+Triangulate.prototype.iterateUWBStuff = function(){
+var tags = this._uwbTags;
+var anchors = this._uwbAnchors;
+var display = this._uwbDisplay;
+var tag = tags[0];
+	var timestamp = Code.getTimeMilliseconds();
+	// console.log("iterateUWBStuff"+tag.knownLocation()+" "+timestamp+"")
+	
+	// console.log();
+	
+	this.singleTimeDataSample(tags, anchors, timestamp);
+	// }
+	this.solveSingleTagPosition(tags, anchors, timestamp);
+}
+
+Triangulate.prototype.drawUWBStuff = function(){
+var tags = this._uwbTags;
+var anchors = this._uwbAnchors;
+var display = this._uwbDisplay;
+var tag = tags[0];
+// console.log(tag);
+
+var displayScale = 200;
+
+
+//display.matrix().scale(displayScale,displayScale);
+display.graphics().clear();
+
+	// show anchors
+var lin = null;
+var col = null;
+var rad = null;
+for(var i=0; i<anchors.length; ++i){
+	var anchor = anchors[i];
+
+	// TODO: visualize  distance errors
+
+	/*
+	var filter = tag._samples.filterForAnchor(anchor);
+	if(filter){
+		var samples = filter._samples;
+		for(var i=0; i<samples.length; ++i){
+			var sample = samples[i];
+			var distance = sample._distance;
+			var actualDistance = ;
+		}
+	}
+	*/
+
+
+	var a = anchor.location();
+	a = a.copy();
+	a.scale(displayScale);
+	display.graphics().setLine(1.0,lin?lin:0xFFFF0000);
+	display.graphics().setFill(col?col:0x99FF0000);
+	display.graphics().beginPath();
+	display.graphics().drawCircle(a.x,a.z, 5.0);
+	display.graphics().endPath();
+	display.graphics().fill();
+	display.graphics().strokeLine();
+}
+
+	// show tag
+//for(var i=0; i<tags.length; ++i){
+//	var tag = tags[i];
+	var a = tag.estimatedLocation();
+if(a){
+	a = a.copy();
+	a.scale(displayScale);
+	display.graphics().setLine(1.0,lin?lin:0xFF0000FF);
+	display.graphics().setFill(col?col:0x990000FF);
+	display.graphics().beginPath();
+	display.graphics().drawCircle(a.x,a.z, 5.0);
+	display.graphics().endPath();
+	display.graphics().fill();
+	display.graphics().strokeLine();
+}
+if(a){
+	var a = tag.knownLocation();
+	a = a.copy();
+	a.scale(displayScale);
+	display.graphics().setLine(1.0,lin?lin:0xCC00CCCC);
+	display.graphics().setFill(col?col:0x66009999);
+	display.graphics().beginPath();
+	display.graphics().drawCircle(a.x,a.z, 10.0);
+	display.graphics().endPath();
+	display.graphics().fill();
+	display.graphics().strokeLine();
+}
+	//var pos = tag.estimatedLocation();
+
+
+
+}
+
+Triangulate.prototype.singleTimeDataSample = function(tags, anchors, timestamp){
+	for(var j=0; j<tags.length; ++j){
+		var tag = tags[j];
+		// simulate estimate location ping
+		for (var i=0; i<anchors.length; ++i) {
+			var anchor = anchors[i];
+			var sample = anchor.sampleForTag(tag, timestamp);
+			if(sample){
+				anchor.addSample(sample);
+				tag.addSample(sample);
+			}
+		}
+	}
+
+}
+
+Triangulate.prototype.solveSingleTagPosition = function(tags){
+	// console.log(tags);
+	for(var j=0; j<tags.length; ++j){
+		var tag = tags[j];
+// console.log(tag);
+		var dataLocations = [];
+		var dataDistances = [];
+		var dataTimestamps = [];
+		//var anchors = tag.getActiveAnchors();
+		var anchors = tag.activeAnchors();
+
+// // console.log(anchors);
+// 		for (var i=0; i<anchors.length; ++i) {
+// 			var anchor = anchors[i];
+// 			var anchorLocation = anchor.location();
+// 			var distanceInfo = tag.anchorDistance(anchor);
+// 			//console.log(distanceInfo);
+// 			var distance = distanceInfo["distance"];
+
+// 			var timestampInfo = tag.anchorTimestamp(anchor);
+// 			var timestamp = timestampInfo["timestamp"];
+// 			dataTimestamps.push(timestamp);
+// 			/*
+// 			var distance = V3D.distance(tagLocation,anchorLocation);
+// 			var errorDistance = anchor.distanceError();
+// 			var error = (Math.random()*2.0) - 1.0; // [0,1] to [-1,1];
+// 			var estimatedDistance = Math.max(distance + distance*errorDistance, 0);
+// 			console.log("distance: "+distance+" +/- "+errorDistance+" => "+estimatedDistance);
+// 			*/
+// 			dataLocations.push(anchorLocation);
+// 			dataDistances.push(distance);
+// 		}
+		
+
+		// check validity of anchor distance estimation:
+		// keep a list of samples
+		// throw out samples that are obviously too far away, eg: +100m (device or practical limits) [50-200m are some typical device limits]
+		// keep an estimate of error = last N samples stddev
+		// use an average of distance
+		// if a LOT of values are continuously thrown away => reconsider a new location as the estimate
+		// - may need to keep a list of throw away values to see if a 'new location' estimate is better?
+
+		// TODO: the locations should be converted to a 0 mean, ~1.414 std-dev size arrangement
+
+
+		tag.updateLocationEstimate();
+
+		/*
+		console.log(dataLocations)
+		console.log(dataDistances)
+		var position = Triangulate.solveUWBLinear(dataLocations, dataDistances);
+		
+		var pos = position["position"];
+		console.log(pos);
+
+		// TODO: filtering on bad pos, don't proceed to nonlinear step
+
+		// tag.location(pos);
+
+		var targetLocation = tag.location();
+		var result = Triangulate.solveUWBNonLinear(targetLocation, dataLocations);
+		// console.log(position);
+		var pos = position["position"];
+		console.log(pos);
+
+		*/
+
+		//tag.addPositionEstimate(pos, anchors, dataDistances, dataTimestamps);
+
+		
+		//tag.addPositionEstimate(pos, timestamp);
+
+
+		// var pos = tag.estimatedLocation();
+		// console.log(pos);
+	}
+
+
+
+
+	// check validity of a new position:
+	// if way outside anchor range (eg anchor spherical volume + max(2 times the range, some limit like 100 meters))
+	// if have a stable error value, can use this to further limit bad estimates
+
+	// move position arount nonlinearly, starting movement = 
+
+
+
+	// if sampling rate is much higher than object movement, can take some averages to find even better average location
+	// 
+
+
+	// can get an error estimate in location by some previous sample stddev
+}
+
+/*
+equation for each anchor:
+	d(pA, p)
+
+	known: anchor locations
+	known: distance
+	unknown: tag location
+*/
+Triangulate.solveUWBLinear = function(locations, distances, errors){
+	// rows = 
+	// 		A) A-B, A-C, A-D,  B-C, B-D, C-D
+	// 		B) A-
+	var rows = locations.length-1;
+	var cols = 3;
+
+	var A = new Matrix(rows, cols);
+	var B = new Matrix(rows, 1);
+
+	var A2 = new Matrix(rows, 4);
+	for(var i=0; i<rows; ++i){
+		var a0 = locations[0];
+		var d0 = distances[0];
+		var ai = locations[i+1];
+		var di = distances[i+1];
+
+		k0 = a0.x*a0.x + a0.y*a0.y + a0.z*a0.z;
+		ki = ai.x*ai.x + ai.y*ai.y + ai.z*ai.z;
+
+		xValue = (ai.x-a0.x)*2;
+		yValue = (ai.y-a0.y)*2;
+		zValue = (ai.z-a0.z)*2;
+		dValue = (d0*d0) - (di*di) - k0 + ki;
+
+		A.set(i, 0, xValue ); // X
+		A.set(i, 1, yValue ); // Y
+		A.set(i, 2, zValue ); // Z
+		B.set(i, 0, dValue ); // D
+
+
+		A2.set(i, 0, xValue ); // X
+		A2.set(i, 1, yValue ); // Y
+		A2.set(i, 2, zValue ); // Z
+		A2.set(i, 3, -dValue); // D
+	}
+//	console.log("A:\n"+A+"");
+//	console.log("B:\n"+B+"");
+
+
+
+	//var c = Matrix.solve(A,B);
+	//console.log(c+"");
+
+
+
+	//var pInv = Matrix.pseudoInverse(A);
+
+
+	//var aInv = Matrix.inverse(A);
+
+
+
+/*
+	var pInv = Matrix.pseudoInverse(A);
+	// console.log("pInv 1:\n"+pInv+"");
+		//pInv = Matrix.transpose(pInv);
+	// console.log("pInv 2:\n"+pInv+"");
+	var c = Matrix.mult(pInv,B);
+	console.log(c+"");
+	var arr = [];
+	c.toArray(arr);
+*/
+
+	/*
+	var pInv = Matrix.pseudoInverseSimple(A);
+	console.log("pInv:\n"+pInv+"");
+	var c = Matrix.mult(pInv,B);
+	console.log(c+"");
+	var arr = [];
+	c.toArray(arr);
+	*/
+
+	//var pInv = Matrix.pseudoInverse(A);
+
+
+	/*
+	var inv = Matrix.pseudoInverse(A);
+	var x = Matrix.mult(inv,B);
+	console.log("X: \n"+x+"");
+	*/
+
+
+	var At = Matrix.transpose(A);
+	var AA = Matrix.mult(At,A);
+	var AAinv = Matrix.inverse(AA);
+	// console.log("AAinv:"+AAinv+"");
+	var AB = Matrix.mult(At,B);
+	// console.log("AB:"+AB+"");
+	var c = Matrix.mult(AAinv,AB);
+	//var c = Matrix.mult(pInv,AB);
+	// console.log(c+"");
+	var arr = [];
+	c.toArray(arr);
+	// console.log(arr+"");
+
+	// var svd = Matrix.SVD(A);
+
+	// console.log("A2:\n"+A2+"");
+	var svd = Matrix.SVD(A2);
+	// console.log("svd.V:\n"+svd.V+"");
+	coeff = svd.V.colToArray(3);
+	// console.log("coeff:\n"+coeff+"");
+	for(i=0;i<coeff.length;++i){
+		coeff[i] = coeff[i]/coeff[coeff.length-1];
+	}
+	// console.log("coeff:\n"+coeff+"");
+
+	var position = new V3D(coeff[0],coeff[1],coeff[2]);
+	return {"position":position};
+
+}
+
+Triangulate.solveUWBNonLinear = function(targetLocation, anchorLocations, anchorDistances, errors){
+	var xVals = [targetLocation.x, targetLocation.y, targetLocation.z];
+	// console.log(xVals+"");
+	// console.log(anchorLocations+"");
+	var args = [anchorLocations, anchorDistances];
+	var maxIterations = 100;
+	var maxError = 1E-9; // 1E-9 meters ~ 1 nano meter
+	// TODO: this could be based on the anchor area
+	var result = Code.gradientDescent(Triangulate._solveUWBNonLinear_gd, args, xVals, null, maxIterations, maxError);
+	//console.log(result);
+	// console.log(result);
+	var x = result["x"];
+	var pos = new V3D(x[0],x[1],x[2]);
+/*
+	var distances = [];
+	for(var i=0; i<anchorLocations.length; ++i){
+		var distance = V3D.distance(anchorLocations[i], pos);
+		distances.push(distance);
+	}
+	var avg = ;
+	var sigma = 
+*/
+	return {"position":pos};
+
+}
+
+Triangulate._solveUWBNonLinear_gd = function(args, x, isUpdate){
+	if(isUpdate){
+		return;
+	}
+	// console.log(args, x, isUpdate);
+	var source = new V3D(x[0],x[1],x[2]);
+	var knownLocations = args[0];
+	var anchorDistances = args[1];
+	var totalError = 0;
+	for(var i=0; i<knownLocations.length; ++i){
+		var location = knownLocations[i];
+		var distance = anchorDistances[i];
+		var newDistance = V3D.distance(source, location);
+		var error = Math.abs(distance - newDistance);
+		totalError += error;
+	}
+	totalError /= knownLocations.length;
+	return totalError;
+}
+// 	if(isUpdate){
+// 		var Ffwd = new Matrix(3,3).fromArray(x);
+// 		Ffwd = R3D.forceRank2F(Ffwd);
+// 		Code.copyArray(x,Ffwd.toArray());
+// 		return;
+// 	}
+// 	var pointsA = args[0];
+// 	var pointsB = args[1];
+
+// 	var i, len = pointsA.length;
+// 	var pointA, pointB, lineA=new V3D(), lineB=new V3D();
+// 	var Frev = R3D._gdFun_B, Ffwd = R3D._gdFun_A;
+// 	var orgA = new V2D(), orgB = new V2D(), dirA = new V2D(), dirB = new V2D();
+// 	Ffwd.fromArray(x);
+// 	Ffwd = R3D.forceRank2F(Ffwd);
+// 	Matrix.transpose(Frev, Ffwd);
+
+// 	var errorA = 0;
+// 	var errorB = 0;
+// var pntA = new V3D();
+// var pntB = new V3D();
+// 	for(i=0;i<len;++i){
+// 		pointA = pointsA[i];
+// 		pointB = pointsB[i];
+// pntA.set(pointA.x,pointA.y,1.0);
+// pntB.set(pointB.x,pointB.y,1.0);
+// pointA = pntA;
+// pointB = pntB;
+// 		Ffwd.multV3DtoV3D(lineA, pointA);
+// 		Frev.multV3DtoV3D(lineB, pointB);
+// 		Code.lineOriginAndDirection2DFromEquation(orgA,dirA, lineA.x,lineA.y,lineA.z);
+// 		Code.lineOriginAndDirection2DFromEquation(orgB,dirB, lineB.x,lineB.y,lineB.z);
+// 		onA = Code.closestPointLine2D(orgA,dirA, pointB);
+// 		onB = Code.closestPointLine2D(orgB,dirB, pointA);
+// 		// var distA = V2D.distance(onB,pointA);
+// 		// var distB = V2D.distance(onA,pointB);
+// 		// errorA += distA*distA;
+// 		// errorB += distB*distB;
+// 		var distA = V2D.distanceSquare(onB,pointA);
+// 		var distB = V2D.distanceSquare(onA,pointB);
+// 		errorA += distA;
+// 		errorB += distB;
+// 	}
+// 	var error = errorA + errorB;
+// 	if(descriptive===true){
+// 		return {"error":error, "A":errorA, "B":errorB}
+// 	}
+
 
 
 Triangulate.prototype.doBeaconStuff = function(){
@@ -321,11 +792,46 @@ Triangulate.prototype.handleCanvasResizeFxn = function(e){
 }
 Triangulate.prototype.handleStageEnterFrameFxn = function(e){
 	//console.log(e);
+	var tags = this._uwbTags;
+	var anchors = this._uwbAnchors;
+	var display = this._uwbDisplay;
+	var tag = tags[0];
+
+	// tag.knownLocation
+	this.iterateUWBStuff();
+	this.drawUWBStuff();
+
 }
 Triangulate.prototype.handleKeyUpFxn = function(e){
 	//
 }
 Triangulate.prototype.handleKeyDownFxn = function(e){
+	var tags = this._uwbTags;
+	var anchors = this._uwbAnchors;
+	var display = this._uwbDisplay;
+	var tag = tags[0];
+	var loc = tag.knownLocation();
+
+
+var dist = 0.1;
+	if(e.keyCode==Keyboard.KEY_LET_Z){
+
+	}else if(e.keyCode==Keyboard.KEY_LEFT){
+		loc.x -= dist;
+	}else if(e.keyCode==Keyboard.KEY_RIGHT){
+		loc.x += dist;
+	}else if(e.keyCode==Keyboard.KEY_UP){
+		loc.z += dist;
+	}else if(e.keyCode==Keyboard.KEY_DOWN){
+		loc.z -= dist;
+	}
+	// console.log(log+"")
+
+	//this.drawUWBStuff();
+
+
+
+	return;
 	var dist = 0.5;
 	var err = 0.1;
 	if(e.keyCode==Keyboard.KEY_LET_Z){
@@ -410,6 +916,462 @@ Triangulate.prototype.handleEnterFrameFxn = function(e){
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------
 Tri = Triangulate;
+Tri.AnchorUWB = function(location, distanceError, distanceStaticError){
+	this._id = Tri.AnchorUWB._ID++;
+	this._distanceError = 0.0;
+	this._distanceStaticError = 0.0;
+	this._location = null;
+	this._probabilityReturnSample = 0.90; // 90% of the time
+	this._probabilityGoodData = 0.90; // 90% of the time
+	this._maxDistanceRange = 5; // outside this range, anchor stops working
+	this.location(location);
+	this.distanceError(distanceError);
+	this.distanceStaticError(distanceStaticError);
+	this._samples = [];
+}
+
+Tri.AnchorUWB._ID = 0;
+Tri.AnchorUWB.prototype.id = function(){
+	return this._id;
+}
+Tri.AnchorUWB.prototype.location = function(location){
+	if(location!==undefined){
+		this._location = location;
+	}
+	return this._location;
+}
+Tri.AnchorUWB.prototype.distanceError = function(error){
+	if(error!==undefined){
+		this._distanceError = error;
+	}
+	return this._distanceError;
+}
+Tri.AnchorUWB.prototype.distanceStaticError = function(error){
+	if(error!==undefined){
+		this._distanceStaticError = error;
+	}
+	return this._distanceStaticError;
+}
+Tri.AnchorUWB.prototype.sampleForTag = function(tag, timestamp){
+	var tagLocation = tag.knownLocation();
+	// console.log(tagLocation+"");
+	var anchorLocation = this.location();
+	var distance = V3D.distance(tagLocation,anchorLocation);
+	// no samples outside range
+	if(distance>this._maximumDistance){
+		return null;
+	}
+	// no samples sometimes hardware unavailable
+	var returnProb = Math.random();
+	if(returnProb>this._probabilityReturnSample){
+		return null;
+	}
+	
+	var errorDistance = this.distanceError();
+	var errorStatic = this.distanceStaticError();
+	var errorRandomDistance = (Math.random()*2.0) - 1.0; // [0,1] to [-1,1];
+	var errorRandomStatic = (Math.random()*2.0) - 1.0;
+	var estimatedDistance = Math.max(errorRandomStatic*errorStatic + distance + distance*(errorDistance*errorRandomDistance), 0);
+
+
+//console.log(this._id+" estimatedDistance: "+estimatedDistance);
+
+	// sometimes return garbage data
+	var badProb = Math.random();
+	if(badProb>this._probabilityGoodData){
+		estimatedDistance = (estimatedDistance*Math.random()*1E9) + Math.random()*1E9;
+	}
+
+
+// console.log(this._id+" estimatedDistance: "+estimatedDistance);
+
+	// compile
+	var sample = new Tri.SampleUWB(this, tag, estimatedDistance, timestamp);
+	return sample;
+}
+Tri.AnchorUWB.prototype.addSample = function(sample){
+	//console.log(sample);
+	//this._samples.push(sample);
+	// use current estimated location to throw out 
+
+	// can calculate the same values as the tags are doing ?
+
+}
+
+
+
+
+Tri.TagUWB = function(){
+	this._id = Tri.TagUWB._ID++;
+	// this._location = new V3D();
+	// calculate location from samples
+	// keep an estimate for the distance from the anchors
+	this._samples = new Tri.SampleAccumulator();
+	this._location = new Tri.PositionFilter();
+	this._estimatedLocation = null;
+	this._estimatedTimestamp = null;
+}
+Tri.TagUWB._ID = 0;
+Tri.TagUWB.prototype.id = function(){
+	return this._id;
+}
+Tri.TagUWB.prototype.knownLocation = function(v){
+	if(v!==undefined){
+		this._knownLocation = v;
+	}
+	return this._knownLocation;
+}
+Tri.TagUWB.prototype.estimatedLocation = function(v){
+	return this._estimatedLocation;
+}
+Tri.TagUWB.prototype._estimatedTimestamp = function(v){
+	return this._estimatedTimestamp;
+}
+// Tri.TagUWB.prototype.move = function(delta){
+// 	this._location.add(delta);
+// }
+
+Tri.TagUWB.prototype.addSample = function(sample){
+	// add the sample to the corresponding list of samples
+	//var anchor = sample.anchor();
+	//console.log(sample);
+	// use current estimated location to throw out 
+	this._samples.addSample(sample);
+}
+
+Tri.TagUWB.prototype.activeAnchors = function(){
+	return this._samples.toAnchorList();
+}
+Tri.TagUWB.prototype.anchorDistance = function(anchor){
+	var samples = this._samples;
+	var filter = samples.filterForAnchor(anchor);
+	if(filter==null){
+		return null;
+	}
+	return filter.distance();
+}
+Tri.TagUWB.prototype.anchorTimestamp = function(anchor){
+	var samples = this._samples;
+	var filter = samples.filterForAnchor(anchor);
+	if(filter==null){
+		return null;
+	}
+	return filter.timestamp();
+}
+Tri.TagUWB.prototype.addPositionEstimate = function(position, timestamp, others){ // timestamp is the AVERAGE timestamp?
+	var filter = this._location;
+	var sample = new Tri.PositionSample(position, timestamp);
+	filter.addSample(sample);
+}
+Tri.TagUWB.prototype.updateLocationEstimate = function(){
+	var distances = this._samples.getDistanceEstimates();
+	var anchors = distances["anchors"];
+	var distanceInfo = distances["distances"];;
+	var timestamps = distances["timestamps"];
+	var dataDistances = [];
+	var dataLocations = [];
+	for(var i=0; i<anchors.length; ++i){
+		var anchor = anchors[i];
+		var distance = distanceInfo[i];
+		var position = anchor.location();
+		dataDistances.push(distance["distance"]);
+		dataLocations.push(position.copy());
+	}
+	var timestamp = Math.max(timestamps);
+	
+	if(dataLocations.length<4){
+		console.log("not enough samples: "+dataLocations.length);
+		return;
+	}
+
+	var position = Triangulate.solveUWBLinear(dataLocations, dataDistances);
+	var pos = position["position"];
+
+// console.log("0) "+this._knownLocation+"")
+// console.log("A) "+pos+"")
+	var position = Triangulate.solveUWBNonLinear(pos, dataLocations, dataDistances);
+	var pos = position["position"];
+// console.log("B) "+pos+"")
+
+	this.addPositionEstimate(pos, timestamp);
+
+	var info = this._location.getLocationEstimate();
+	if(info!=null){
+		this._estimatedLocation =  info["location"];
+		this._estimatedTimestamp  = info["timestamp"];
+	}
+}
+
+
+
+Tri.SampleUWB = function(anchor, tag, distance, timestamp){
+	this._id = Tri.SampleUWB._ID++;
+	this._anchor = anchor
+	this._tag = tag;
+	this._distance = distance;
+	this._timestamp = timestamp;
+}
+Tri.SampleUWB._ID = 0;
+Tri.SampleUWB.prototype.id = function(){
+	return this._id;
+}
+Tri.SampleUWB.prototype.anchor = function(v){
+	return this._anchor;
+}
+Tri.SampleUWB.prototype.tag = function(v){
+	return this._tag;
+}
+Tri.SampleUWB.prototype.distance = function(v){
+	return this._distance;
+}
+Tri.SampleUWB.prototype.timestamp = function(v){
+	return this._timestamp;
+}
+
+
+
+// keep track of different samples from different sources
+// 
+Tri.SampleAccumulator = function(){
+	this._sampleLists = {};
+}
+Tri.SampleAccumulator.prototype.filterForAnchor = function(anchor){
+	var index = anchor.id();
+	var filter = this._sampleLists[index];
+	if(filter){
+		return filter;
+	}
+	return null;
+}
+Tri.SampleAccumulator.prototype.addSample = function(sample){
+	// find corresponding list
+	var anchor = sample.anchor();
+	var index = anchor.id();
+	var filter = this._sampleLists[index];
+	if(!filter){
+		filter = new Tri.SampleFilter(anchor)
+		this._sampleLists[index] = filter;
+	}
+	filter.addSample(sample);
+
+	// TODO: filter accumulators based on other accumulators
+	// remove them if the timestamp is too far away
+
+}
+Tri.SampleAccumulator.prototype.toAnchorList = function(){
+	var samples = this._sampleLists;
+	var keys = Code.keys(samples);
+	var anchors = [];
+	for(var i=0; i<keys.length; ++i){
+		var key = keys[i];
+		var filter = samples[key];
+		var anchor = filter.anchor();
+		anchors.push(anchor);
+	}
+	return anchors;
+}
+Tri.SampleAccumulator.prototype.getDistanceEstimates = function(){
+	var anchors = this.toAnchorList();
+	var distances = [];
+	var timestamps = [];
+	var outAnchors = [];
+	for(var i=0; i<anchors.length; ++i){
+		var anchor = anchors[i];
+		// console.log(anchor);
+		var anchorID = anchor.id();
+		var filter = this._sampleLists[anchorID];
+		// console.log(filter);
+		var distance = filter.estimatedDistance();
+		if(distance!=null){
+			// console.log(distance);
+			timestamps.push(filter.timestamp());
+			distances.push(distance);
+			outAnchors.push(anchor);
+		}
+	}
+	var result = {"distances":distances, "anchors":outAnchors, "timestamps":timestamps};
+	return result;
+}
+
+
+
+// keeps track of samples from a single source
+Tri.SampleFilter = function(anchor){
+	this._anchor = anchor;
+	//this._distance = 0;
+	this._samples = [];
+}
+Tri.SampleFilter.prototype.addSample = function(sampleIn){
+	if(!sampleIn){
+		console.log(sampleIn);
+		console.log("bad sample");
+		return;
+	}
+
+	// drop bad samples on the floor:
+	var distance = sampleIn.distance();
+	if(distance>100){
+		console.log("ignoring large distance: "+distance);
+		return;
+	}
+
+
+	var samples = this._samples;
+	samples.push(sampleIn);
+	var distances = [];
+	var timestamps = [];
+	var count = samples.length;
+	if(count<=3){ // need at least 3+ samples to start filtering
+		return;
+	}
+	for(var i=0; i<count; ++i){
+		var sample = samples[i];
+		var distance = sample.distance();
+		var timestamp = sample.timestamp();
+		distances.push(distance);
+		timestamps.push(timestamp);
+	}
+
+	// filter out bad distance estimates
+	var avgD = Code.avg(distances);
+	var sigmaD = Code.stdDev(distances,avgD);
+	var limitD = 2*sigmaD; // 2 = 95%
+
+	// filter out old timestamp values
+	var avgT = Code.avg(timestamps);
+	var sigmaT = Code.stdDev(timestamps,avgT);
+	var limitT = 2*sigmaT; // 2 = 95%
+
+	// remove from list
+	for(var i=0; i<count; ++i){
+		var sample = samples[i];
+		if(!sample){
+			console.log(sample);
+			console.log("sample was undefined ?");
+			continue; // WHY IS THIS HAPPENING?
+		}
+		var distance = sample.distance();
+		var timestamp = sample.timestamp();
+		var deltaD = Math.abs(distance-avgD);
+		var deltaT = Math.abs(timestamp-avgT);
+		if(deltaD>limitD && deltaT>limitT){
+			Code.removeElementAt(samples,i);
+			--i; // retry index;
+			console.log("removing: "+i+" for "+deltaD+">"+limitD+" || "+deltaT+">"+limitT+" ... ");
+		}
+	}
+
+	// truncate array to max count
+	Code.preTruncateArray(samples, 10);
+	/*
+	while(samples.length>10){
+		samples.shift(); // remove from beginning = oldest
+		// Code.truncateArray(samples, 10);
+	}
+	*/
+}
+Tri.SampleFilter.prototype.estimatedDistance = function(){
+	var samples = this._samples;
+	var count = samples.length;
+	if(count==0){
+		return null;
+	}
+	var distances = [];
+	var timestamps = [];
+	for(var i=0; i<count; ++i){
+		var sample = samples[i];
+		var distance = sample.distance();
+		var timestamp = sample.timestamp();
+		distances.push(distance);
+		timestamps.push(timestamp);
+	}
+	var avgD = Code.avg(distances);
+	var sigmaD = Code.stdDev(distances,avgD);
+
+
+	// TODO: repeated drops
+	// Code.repeatedDropOutliers = function(inList, toValueFxn, toLimitFxn, minCount, maxIterations, updateFxn){
+	var timestamp = Math.max(timestamp);
+	// console.log(timestamp);
+
+
+	return {"distance":avgD, "sigma":sigmaD, "timestamp":timestamp};
+}
+Tri.SampleFilter.prototype.timestamp = function(){
+	var samples = this._samples;
+	var count = samples.length;
+	var timestamps = [];
+	for(var i=0; i<count; ++i){
+		var sample = samples[i];
+		var timestamp = sample.timestamp();
+		timestamps.push(timestamp);
+	}
+	var avgT = Code.avg(timestamps);
+	var sigmaT = Code.stdDev(timestamps,avgT);
+	return {"timestamp":avgT, "sigma":sigmaT};
+}
+Tri.SampleFilter.prototype.anchor = function(){
+	return this._anchor;
+}
+
+
+Tri.PositionSample = function(position, timestamp){
+	this._position = position;
+	this._timestamp = timestamp;
+}
+Tri.PositionSample.prototype.position = function(v){
+	return this._position;
+}
+Tri.PositionSample.prototype.timestamp = function(v){
+	return this._timestamp;
+}
+
+// keep track of position estimate
+Tri.PositionFilter = function(){
+	this._samples = [];
+}
+Tri.PositionFilter.prototype.addSample = function(sample){
+	var samples = this._samples;
+	samples.push(sample);
+	Code.preTruncateArray(samples, 10);
+}
+Tri.PositionFilter.prototype.getLocationEstimate = function(sample){
+	var samples = this._samples;
+	if(samples.length==0){
+		return null;
+	}
+
+	var positions = [];
+	var timestamps = [];
+	for(var i=0; i<samples.length; ++i){
+		var sample = samples[i];
+		// console.log(sample);
+		positions.push(sample.position());
+		timestamps.push(sample.timestamp());
+	}
+	var timestamp = Math.max(timestamps);
+	var average = V3D.average(positions);
+	// console.log(average);
+
+	var sigma = Code.stdDevV3D(positions, average);
+	// console.log(sigma);
+
+	// TODO: repeat drop
+
+
+	// list of positions measurements
+	// drop old timestamps
+	// drop far position error
+	// tag.addPositionEstimate(pos, anchors, dataDistances, dataTimestamps);
+
+
+	var result = {"location":average, "sigma":sigma, "timestamp":timestamp};
+	return result;
+}
+
+
+
+
 Tri.Beacon = function(location, power, maxDistance, staticError, powerError, distanceError){
 	this._id = Tri.Beacon._ID++;
 	this._sourcePower = 1.0;

@@ -1,0 +1,278 @@
+<html>
+<head>
+<title>Lineart Resolution</title>
+<script src="../code/FF.js"></script>
+</head>
+<script type="text/javascript">
+function pageLoadedFxn(){
+	var ff = new FF("../code/",ffLoadedFxn);
+}
+function ffLoadedFxn(){
+	(new ScriptLoader("./",["LineArt.js"],this,classesLoadedFxn)).load();
+}
+function classesLoadedFxn(){
+	//var art = new LineArt();
+
+
+
+
+	// var sampleCount = 5;
+	//var sampleCount = 10;
+	var sampleCount = 50;
+	// var sampleCount = 100;
+	var angles = [];
+	var vectors = [];
+	var averageManual = new V2D();
+
+	// var vectors = [
+	// 	(new V2D()).norm().
+	// ];
+
+	/* = 60 = correct
+	var angles = [
+		Code.radians(30),
+		Code.radians(60),
+		Code.radians(90)
+	];
+	*/
+
+	// (30+60+135)/3 = 75, not 72.3678..
+	// var angles = [
+	// 	Code.radians(30),
+	// 	Code.radians(60),
+	// 	Code.radians(135)
+	// ];
+
+	// both 90
+	// var angles = [
+	// 	Code.radians(0),
+	// 	Code.radians(180)
+	// ];
+
+	// 135 v 125
+	// var angles = [
+	// 	Code.radians(30),
+	// 	Code.radians(135),
+	// 	Code.radians(210),
+	// ];
+
+	// obviously not 31
+	// var angles = [
+	// 	Code.radians(30),
+	// 	Code.radians(31),
+	// 	Code.radians(210),
+	// ];
+
+	// obviously not 1
+	// var angles = [
+	// 	Code.radians(0),
+	// 	Code.radians(1),
+	// 	Code.radians(180),
+	// ];
+
+	// var angles = [
+	// 	Code.radians(0),
+	// 	Code.radians(180.0),
+	// 	Code.radians(0.0),
+	// ];
+
+
+	// var angles = [
+	// 	Code.radians(0),
+	// 	Code.radians(180.0),
+	// 	Code.radians(10.0),
+	// ];
+
+
+	// var angles = [
+	// 	Code.radians(0.0),
+	// 	Code.radians(180.0),
+		
+	// 	Code.radians(20.0)
+	// ];
+
+
+
+	// var angles = [
+	// 	Code.radians(0.0),
+	// 	Code.radians(180.0),
+	// 	Code.radians(60.0),
+	// 	Code.radians(240.0),
+	// 	Code.radians(90.0)
+	// ];
+
+
+
+
+
+	// ORDER SHOULDN'T MATTER
+
+	var hasAngles = angles.length > 0;
+
+	if(hasAngles){
+		sampleCount = angles.length;
+	}
+
+
+// var center = new V2D(1,0);
+// center.rotate( Code.radians(45) );
+// var center =  Code.radians(45);
+	var center = Code.radians(5);
+// var sigma = Code.radians(45);
+// var sigma = Code.radians(90);
+// var sigma = Code.radians(180);
+//var sigma = Code.radians(270);
+	var sigma = Code.radians(360);
+	
+	for(var i=0; i<sampleCount; ++i){
+		var angle = 0;
+		if(hasAngles){
+			angle = angles[i];
+		}else{
+			angle = center + (Math.random()-0.5)*sigma;
+			// pure circular random
+			// angle = Math.random()*Math.PI*2.0;
+		}
+		vector = new V2D(1.0,0.0);
+		vector.rotate(angle);
+		angles[i] = angle;
+		vectors[i] = vector;
+		averageManual.x += vector.x;
+		averageManual.y += vector.y;
+	}
+	averageManual.x /= sampleCount;
+	averageManual.y /= sampleCount;
+
+	var averageA = Code.averageAngles(angles);
+	var averageB = Code.averageAngles2D(vectors);
+		console.log("averageB: "+averageB);
+		averageB = V2D.angleDirection(V2D.DIRX,averageB);
+
+var centerAngle = averageB;
+	var averageC = V2D.angleDirection(V2D.DIRX,averageManual);
+var badAngle = averageA;
+
+	averageA = averageA * 180/Math.PI;
+	averageB = averageB * 180/Math.PI;
+	averageC = averageC * 180/Math.PI;
+
+	console.log("averageA: "+averageA);
+	console.log("averageB: "+averageB);
+	console.log("averageC: "+averageC);
+
+
+	// verify by calculating average angle (in direction)
+	var goodVector = new V2D(1,0);
+		goodVector.rotate(centerAngle);
+	var badVector = new V2D(1,0);
+		badVector.rotate(badAngle);
+	var goodAvg = 0;
+	var badAvg = 0;
+	for(var i=0; i<sampleCount; ++i){
+		var angle = angles[i];
+			var vector = new V2D(1,0);
+				vector.rotate(angle);
+		var angleA = V2D.angleDirection(goodVector,vector);
+		var angleB = V2D.angleDirection(badVector,vector);
+		goodAvg += angleA;
+		badAvg += angleB;
+	}
+	goodAvg /= sampleCount;
+	badAvg /= sampleCount;
+	goodAvg = Code.degrees(goodAvg);
+	badAvg = Code.degrees(badAvg);
+	console.log("goodAvg: "+goodAvg);
+	console.log("badAvg: "+badAvg);
+
+
+
+
+	// 360/50 = 7.2 ... some weird phenomena
+
+
+// WANT TO VISUALIZE THIS
+
+	this._canvas = new Canvas(null,0,0,Canvas.STAGE_FIT_FILL, false,false);
+	this._stage = new Stage(this._canvas, 1000/20);
+	this._root = new DO();
+	this._stage.addChild(this._root);
+	this._canvas.addListeners();
+	this._stage.addListeners();
+	this._stage.start();
+	this._canvas.addFunction(Canvas.EVENT_MOUSE_CLICK,this.handleMouseClickFxn,this);
+
+	var viz = new DO();
+
+	viz.matrix().scale(1,-1);
+	this._stage.addChild(viz);
+
+
+angles.push(badAngle);
+
+angles.push(centerAngle);
+
+
+
+
+var thickOutline = 2.0;
+var colorOutline = 0xFF0000FF;
+var p2D = new V2D(150,-120);
+var circleSize = 50;
+	var d = viz;
+		d.graphics().clear();
+		// d.graphics().setFill(colorFill);
+		d.graphics().setLine(thickOutline,colorOutline);
+		d.graphics().beginPath();
+		d.graphics().drawCircle(p2D.x,p2D.y,circleSize);
+		d.graphics().endPath();
+		d.graphics().strokeLine();
+		// d.graphics().fill();
+
+
+
+thickOutline = 3.0;
+colorOutline = 0xFF223366;
+circleMin = 45;
+circleSize = 75;
+	for(var i=0; i<angles.length; ++i){
+		var angle = angles[i];
+		var v = new V2D(1.0,0.0);
+		v.rotate(angle);
+
+// bad
+if(i==angles.length-2){
+	thickOutline = 3.0;
+	colorOutline = 0xFF990033;
+	circleSize = 90;
+}
+// good
+if(i==angles.length-1){
+	thickOutline = 3.0;
+	colorOutline = 0xFF009933;
+	circleSize = 100;
+}
+		d.graphics().setLine(thickOutline,colorOutline);
+		d.graphics().beginPath();
+		if(i<angles.length-2){
+			d.graphics().lineTo(p2D.x + v.x*circleMin,p2D.y + v.y*circleMin);
+		}else{
+			d.graphics().moveTo(p2D.x,p2D.y);
+		}
+		d.graphics().lineTo(p2D.x + v.x*circleSize,p2D.y + v.y*circleSize);
+		
+		d.graphics().endPath();
+		d.graphics().strokeLine();
+	}
+
+	// draw a cirle
+	// draw lines
+	// thickness is scaled by weight
+
+
+
+
+}
+</script>
+<body onload="pageLoadedFxn();">
+</body>
+</html>

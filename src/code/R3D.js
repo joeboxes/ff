@@ -386,7 +386,104 @@ R3D.PFromKRT = function(K,R,t){
 	// return transform
 }
 
+// ?
+R3D.optimizeMultipleCameraExtrinsicSurfacePointPointNonlinear = function(listP, listK, listKinv, variablePIndex, listDatas, maxIterations, negativeIsBad,  useEpsilon){
+	// DATAS: [point2DA,viewAID, point2DB,viewBID, planeP3D, normal3D];
+	console.log(listP, listK, listKinv, variablePIndex, listDatas, maxIterations, negativeIsBad,  useEpsilon)
+	console.log(listDatas);
 
+	maxIterations = Code.valueOrDefault(maxIterations, 1000);
+	negativeIsBad = Code.valueOrDefault(negativeIsBad, false);
+	useEpsilon = Code.valueOrDefault(useEpsilon, false);
+	
+	var args = [listP, listK, listKinv, variablePIndex, listDatas, negativeIsBad];
+	// make a temporary matrix for iterating on
+	var O = listP[variablePIndex];
+		P = O.copy();
+	listP[variablePIndex] = P;
+	var x = R3D.transformMatrixToComponentArray(P);
+	var minErrorDifference = 1E-12/listP.length; // 
+	// min error difference should be (allowable pixels error per point) / (# of points)
+	var result = Code.gradientDescent(R3D._transformCameraExtrinsicPointPointDistanceNonlinearGD, args, x, useEpsilon, maxIterations, minErrorDifference);
+	// Code.gradientDescent = function(fxn, args, x, dx, iter, diff, epsilon, lambda){
+	// console.log(result);
+	// throw "result 1 2 3";
+	var x = result["x"];
+	var cost = result["cost"];
+	// replace as-was
+	listP[variablePIndex] = O;
+	// to output
+	R3D.transform3DFromComponentArray(P, x);
+	return {"P":P, "error":cost};
+
+	// throw "optimizeMultipleCameraExtrinsicSurfacePointPointNonlinear";
+}
+R3D._transformCameraExtrinsicPointPointDistanceNonlinearGD = function(args, x, isUpdate){
+// console.log(args);
+// console.log(x);
+	var listP = args[0];
+	var listK = args[1];
+	var listKinv = args[2];
+	var variableIndex = args[3];
+	var listSurface3D = args[4];
+	var negativeIsBad = args[5];
+	var extrinsicP = listP[variableIndex];
+	R3D.transform3DFromComponentArray(extrinsicP, x);
+	var pointSetCount = listSurface3D.length;
+
+	var points2D = []; // temp
+	var extrinsics = []; // temp
+	var invKs = []; // temp
+
+	var totalError = 0;
+	//var tempP3D = new V3D();
+	for(var k=0; k<pointSetCount; ++k){ // DATAS: [point2DA,viewAID, point2DB,viewBID, planeP3D, normal3D];
+		var surface = listSurface3D[k];
+		// console.log(surface);
+		//throw "...";
+		// A: distance from estimated point to center
+		// B: distance from estimated point to plane
+			var indexA = surface[1];
+			var indexB = surface[3];
+			var planePoint3D = surface[4];
+			var planeNormal3D = surface[5];
+			points2D[0] = surface[0];
+			points2D[1] = surface[2];
+			extrinsics[0] = listP[indexA];
+			extrinsics[1] = listP[indexB];
+			invKs[0] = listKinv[indexA];
+			invKs[1] = listKinv[indexB];
+// console.log(points2D, extrinsics, invKs);
+		var point3D = R3D.triangulatePointDLTList(points2D, extrinsics, invKs);
+// console.log(point3D);
+
+		// POINT
+		var ppDistance = V3D.distance(point3D, planePoint3D);
+		// console.log("p-pDistance:    "+ppDistance);
+		var surfaceError = ppDistance;
+		
+		// PLANE
+		// var pClosest = Code.closestPointPlane3D(planePoint3D,planeNormal3D,point3D);
+		// var pDistance = V3D.distance(point3D, pClosest);
+		// // console.log("plane Distance: "+pDistance);
+		// var surfaceError = pDistance;
+
+		// TODO: distance squared v distance
+
+
+		// console.log("A) "+ppDistance+"\nB) "+pDistance);
+
+		// totalError += (surfaceError*surfaceError);
+		totalError += surfaceError;
+	}
+	// console.log("TOTAL ERROR: "+totalError);
+	// throw "TOTAL ERROR: "+totalError;
+	// throw "_transformCameraExtrinsicPointPointDistanceNonlinearGD";
+	// if(isUpdate){
+	// 	return;
+	// }
+	return totalError;
+}
 R3D.optimizeMultipleCameraExtrinsicDLTNonlinear = function(listP, listK, listKinv, variablePIndex, listPoints2D, maxIterations, negativeIsBad, useEpsilon){
 	maxIterations = Code.valueOrDefault(maxIterations, 1000);
 	negativeIsBad = Code.valueOrDefault(negativeIsBad, false);
@@ -63598,6 +63695,7 @@ R3D.projectPoint3DCamera2DDistortion = function(in3D, extrinsic, K, distortion, 
 	// to local camera coordinates
 	if(extrinsic){
 		v3D = extrinsic.multV3DtoV3D(in3D);
+		// console.log(v3D+"")
 	}
 	if(v3D.z==0){
 		// console.log(v3D+" == 0");

@@ -1844,6 +1844,11 @@ Code.arrayRemoveIndexes = function(a, list){
 	}
 	return a;
 }
+Code.arrayRemoveIndex = function(a, index){
+	a.splice(index, 1);
+	return a;
+}
+
 Code.subArray = function(b, a, start, count){ // b = a[start,...start+count-1]
 	if(count==undefined){ // a, start, count
 		count = start;
@@ -3494,7 +3499,166 @@ Code._GDN_cost = function(isUpdate){
 
 
 */
-Code.gradientDescent = function(fxn, args, x, dx, iter, diff, epsilon, lambda){
+// x epsilon -> hacky way to determine what dx should be, should not be an input
+// lambda should only be used internally, not exposed
+
+/*
+	fxn  = cost method to run : fxn(x, args, isUpdate, iteration)
+	args = parameters to pass to fxn method
+	x    = is the exact value of the variables to test by varying
+	dx   = is the amount in each variable direction to test in proximity of x, to estimate the surface
+	iter = max number of iterations to force return
+	diff = minimum difference in cost between runs to be considered trivial and exit route
+	
+	lambda = scaling of dy/dz for next evaluation point
+*/
+
+Code.gradientDescent = function(fxn, args, x, dx, iter, diff){
+	if(arguments.length>6){
+		throw "Code.gradientDescent called with too many args, check if used correctly ("+arguments.length+") or call gradientDescent3";
+	}
+	// if change of cost isn't going down, epsilon can be cut?
+	var defaultDx = 1E-6;
+	var i, j, k, c;
+	var sizeX = x.length;
+	var cost = fxn(args, x, false, -1); // current / starting cost
+	var currCost, nextCost;
+	var maxIterations = iter!=null ? iter : 50;
+	var minDifference = diff!=null ? diff : 1E-10;
+		var lambda = 1.0;
+	var lambdaScaler = 2.0; // smaller is more accurate, larger is quicker initially
+//	var epsilonScaler = 2.0;
+
+	var nextX = Code.newArrayZeros(sizeX);
+	var prevX = Code.copyArray(x); // local instance of x
+	var dy = Code.newArrayZeros(sizeX);
+	var tx = Code.newArrayZeros(sizeX);
+
+	var sequentialLambdaDirection = 0;
+	var didReduceError = false;
+
+	// generate a dx if one isn't present input
+	if(!dx){
+		dx = Code.newArrayZeros(sizeX);
+		for(i=0; i<sizeX; ++i){
+			dx[i] = defaultDx;
+		}
+	}
+	// repeat the parameter estimation as long as cost reduction continues
+var successfulReductions = 0;
+var reduceErrorCount = 0;
+	for(k=0; k<maxIterations; ++k){
+		// get cost in each +dx direction
+		// console.log("    dx: "+dx);
+		// console.log("    prevX: "+prevX);
+		for(i=0; i<sizeX; ++i){
+			Code.copyArray(tx,prevX);
+			tx[i] += dx[i];
+			c = fxn(args, tx, false, i);
+			dy[i] = c - cost;
+			tx[i] = 0;
+		}
+		// initial best guess:
+		for(i=0; i<sizeX; ++i){
+			nextX[i] = prevX[i] - lambda*dy[i]/dx[i];
+		}
+		// console.log("    dy: "+dy);
+		var newCost = fxn(args, nextX, false, -1);
+		// console.log("    Cost: "+newCost);
+		// console.log("    nextX: "+nextX);
+// ???
+sequentialLambdaDirection = 0;
+		// scale down lambda to get a shorter distance vector and maybe not overshoot minima
+		var iter = 5;
+		while(newCost>=cost && iter>0){
+			sequentialLambdaDirection -= 1;
+			lambda /= lambdaScaler;
+			// best next guess
+			for(i=0; i<sizeX; ++i){
+				nextX[i] = prevX[i] - lambda*dy[i]/dx[i];
+			}
+			newCost = fxn(args, nextX, false, -1);
+			--iter;
+//			console.log("newCost: "+newCost);
+		}
+// console.log("sequentialLambdaDirection: "+sequentialLambdaDirection);
+// altering epsilon
+/*
+		//if(sequentialLambdaDirection>=5){ // lambda very big scale, try larger epsilon -- currently no scenario for this
+		//if(false && successfulReductions>10){
+		if(false && successfulReductions>100){ // as soon as this is increased, the -- is called
+			// console.log("++ "+dx[0]);
+			lambda /= lambdaScaler;
+			sequentialLambdaDirection = 0;
+			for(i=0; i<sizeX; ++i){
+				dx[i] *= epsilonScaler;
+			}
+			successfulReductions = 0;
+		}
+		if(sequentialLambdaDirection<=-5){  // lambda very small, try smaller epsilon
+			// console.log("-- "+dx[0]);
+			lambda *= lambdaScaler;
+			sequentialLambdaDirection = 0;
+			for(i=0; i<sizeX; ++i){
+				dx[i] /= epsilonScaler;
+			}
+		}
+*/
+		// should be good by now, following gradient
+		var diffCost = Math.abs(newCost-cost);
+		if(newCost<cost){
+			successfulReductions += 1
+			didReduceError = true;
+			// console.log("NEW COST: "+newCost+" / "+cost+" diff: "+diffCost);
+			// console.log("NEW COST: "+newCost+"");
+//			console.log("good "+sequentialLambdaDirection);
+			cost = newCost;
+			var temp = prevX;
+			prevX = nextX;
+			nextX = temp;
+			fxn(args,prevX, true, -1);
+			lambda *= lambdaScaler;
+			sequentialLambdaDirection += 1;
+		}else{ // lambda already scaled down before this
+			successfulReductions -= 1;
+			didReduceError = false;
+			// console.log("bad : "+sequentialLambdaDirection);
+			lambda /= lambdaScaler;
+			sequentialLambdaDirection -= 1;
+		}
+
+// console.log("successfulReductions: "+successfulReductions);
+
+
+		if(lambda<1E-100){ // if(lambda==0){
+			//console.log("lambda ~ 0"); //console.log("lambda = 0");
+			break;
+		}
+		if(lambda>1E100){
+			throw "what ? "+lambda;
+		}
+		if(diffCost<minDifference && didReduceError){
+			reduceErrorCount++;
+//			console.log("minDifference: "+diffCost+" < "+minDifference+" @ "+reduceErrorCount);
+			if(reduceErrorCount>3){
+				 // console.log("exit 1: "+diffCost+" "+dx+" #@ "+lambda+" ... "+dy);
+				// TODO: this should be consistently less than min difference
+//				console.log("exit 1: "+diffCost+" < "+minDifference);
+				break;
+			}
+		}else{
+			reduceErrorCount = 0;
+		}
+	}
+	if(k==maxIterations){
+		console.log("iteration quit");
+	}
+	Code.copyArray(x,prevX);
+	return {"x":x,"cost":cost, "lambda":lambda, "dx":dx};
+}
+
+
+Code.gradientDescent3 = function(fxn, args, x, dx, iter, diff, epsilon, lambda){
 	// if change of cost isn't going down, epsilon can be cut?
 	var i, j, k, c;
 	var sizeX = x.length;
@@ -3563,7 +3727,7 @@ sequentialLambdaDirection = 0;
 			}
 			newCost = fxn(args, nextX, false, -1);
 			--iter;
-			// console.log("newCost: "+newCost);
+//			console.log("newCost: "+newCost);
 		}
 // console.log("sequentialLambdaDirection: "+sequentialLambdaDirection);
 // altering epsilon
@@ -3622,11 +3786,11 @@ sequentialLambdaDirection = 0;
 		}
 		if(diffCost<minDifference && didReduceError){
 			reduceErrorCount++;
-			console.log("minDifference: "+diffCost+" < "+minDifference+" @ "+reduceErrorCount);
+//			console.log("minDifference: "+diffCost+" < "+minDifference+" @ "+reduceErrorCount);
 			if(reduceErrorCount>3){
 				 // console.log("exit 1: "+diffCost+" "+dx+" #@ "+lambda+" ... "+dy);
 				// TODO: this should be consistently less than min difference
-				console.log("exit 1: "+diffCost+" < "+minDifference);
+//				console.log("exit 1: "+diffCost+" < "+minDifference);
 				break;
 			}
 		}else{
@@ -3637,7 +3801,7 @@ sequentialLambdaDirection = 0;
 		console.log("iteration quit");
 	}
 	Code.copyArray(x,prevX);
-	return {"x":x,"cost":cost};
+	return {"x":x,"cost":cost, "lambda":lambda, "epsilon":epsilon};
 }
 
 
@@ -4848,6 +5012,7 @@ Code.averageV3D = function(values, percents){
 	return sum;
 }
 Code.averageAngleVector2D = function(vectors, percents){ // TODO: this doesn't handle 0 percents well
+	throw "does this work?"
 	if(!vectors){
 		return null;
 	}
@@ -4863,6 +5028,8 @@ Code.averageAngleVector2D = function(vectors, percents){ // TODO: this doesn't h
 	var total = new V2D();
 	var sumPercent = 0;
 	var i = 0;
+
+	// i = internalStartIndex
 	for(; i<vectors.length; ++i){
 		total.set(vectors[0]);
 		sumPercent += percent;
@@ -4879,13 +5046,163 @@ Code.averageAngleVector2D = function(vectors, percents){ // TODO: this doesn't h
 		var angle = V2D.angleDirection(total,vector);
 		sumPercent += percent;
 		var weight = (percent/sumPercent);
+		var weight = percent;
 		angle *= weight;
 		total.rotate(angle);
 		total.norm(); // numerical error keep at 1.0
 	}
-	return total;
 
+	return total;
 }
+
+Code.averageAngles2D = function(vectors, percents, internalStartIndex){
+	internalStartIndex = Code.valueOrDefault(internalStartIndex,0);
+// TODO: this doesn't handle 0 percents well?
+// TODO: when there are a lot of vectors (equal distribution) the starting point matters, and this can have more error
+	if(!vectors){
+		return null;
+	}
+	var count = vectors.length;
+	if(count==0){
+		return null;
+	}
+	// local values/defaults
+	var total = new V2D();
+	var percent = 1.0/count;
+	var sumPercent = 1.0;
+
+	// sum up weights
+	var i = 0;
+	if(percents){
+		for(; i<vectors.length; ++i){
+			percent = percents[i];
+			sumPercent += percent;
+		}
+		if(sumPercent==0){
+			// nothing to average
+			console.log("total percent is zero");
+			return null;
+		}
+	}
+	// console.log("total percent: "+sumPercent);
+	var indexes = Code.newArrayIndexes(vectors.length-1); // 0 to vectors.length
+
+	if(internalStartIndex!=0){
+		for(i=0; i<internalStartIndex; ++i){
+			indexes.push(indexes.shift());
+		}
+		// console.log("INDEXES: "+indexes);
+	}
+	// TODO: starting index matters
+
+	// find first non-zero percent vector to set as starting point
+	var currentPercent = 0;
+	for(var i=0; i<vectors.length; ++i){
+		var index = indexes[i];
+		if(percents){
+			percent = percents[index];
+		}
+		if(percent>0){
+
+			console.log("START INDEX: "+index+" = "+vectors[index]);
+			currentPercent = percent;
+			total.set(vectors[index]);
+			indexes.splice(i,1);
+			total.norm(); // set to unit vector
+			break;
+		}
+	}
+	// pop off ith index from array
+	
+
+// this is unstable and needs to sort angles so that there isn't jumping 180 deg around the circle
+// could sort in a separate index 
+// could sort on each iteration to next closest
+// might need to POP/SPLICE in a duplicate array
+
+	// move 'total' vector in direction of next vector using cummulitive weight/mass
+	//for(; i<vectors.length; ++i){
+	while(indexes.length>0){
+		
+		
+		// find closest next vector
+		var minAngle = null;
+		var minIndex = null;
+		for(var i=0; i<indexes.length; ++i){
+			var index = indexes[i];
+			var next = vectors[index];
+			var angle = V2D.angle(total,next);
+			if(minAngle==null || angle<minAngle){
+				minAngle = angle;
+				minIndex = i;
+			}
+		}
+		// choose next vector
+		var index = indexes[minIndex];
+		var vector = vectors[index];
+		indexes.splice(minIndex,1);
+		if(percents){
+			percent = percents[index];
+		}
+		if(percent==0){
+			continue;
+		}
+		
+
+		// (signed) angle to move from current total to next vector
+		var angle = V2D.angleDirection(total,vector);
+		// current total vector weight
+		var totalWeight = currentPercent/sumPercent;
+		var currWeight = percent;
+		// consider only the 2 vectors relative weights when moving
+		var ratio = currWeight / (totalWeight + currWeight);
+		// console.log("      ratio: "+ratio);
+		angle *= ratio; // move wrt weight
+		total.rotate(angle);
+		total.norm(); // numerical error keep at 1.0
+		currentPercent += percent; // new combined total vector weight
+	}
+
+	// calculate average angle
+
+	// if |average angle error| > 1E-13
+	// retry at different index
+
+
+
+	// var vector = new V2D(1,0);
+	var avg = 0;
+	for(var i=0; i<vectors.length; ++i){
+		vector = vectors[i];
+		// var angle = angles[i];
+		if(percents){
+			percent = percents[i];
+		}
+			// vector.set(1,0);
+			// vector.rotate(angle);
+		var angleA = V2D.angleDirection(total,vector);
+		var error = angleA * percent/sumPercent;
+		avg += error;
+	}
+
+	console.log(" avg("+internalStartIndex+"): "+Code.degrees(avg));
+	avg = Math.abs(avg);
+
+// try again
+	// var maxTries = 10;
+	var maxTries = vectors.length;
+// 100% time if non-uniform: only needs 1 run
+// (1/n)% tim w/ uniform: needs 2 runs
+// drops off
+if(avg>1E-13 && internalStartIndex<maxTries){
+	return Code.averageAngles2D(vectors, percents, internalStartIndex + 1);
+}
+
+
+
+	return total;
+}
+
 Code.averageAngleVector2D_2 = function(vectors, percents){ // vectors assumed nonzero
 	if(!vectors){
 		return null;
@@ -5343,6 +5660,11 @@ Code._opAngleVector3D = function(vectorA, vectorB, mag){ // assume Z = default l
 	return vectorC;
 }
 Code.averageAngleVector3D = function(vectors, percents, count){ // center of vectors via rotation on sphere [ignores twist]
+	// Code.averageAngles3D
+
+
+	throw "check that this actually works -> Code.averageAngleVector2D_B | Code.averageAngles2D"
+
 	if(!vectors){
 		return null;
 	}
@@ -5351,6 +5673,8 @@ Code.averageAngleVector3D = function(vectors, percents, count){ // center of vec
 		return null;
 	}
 	var percent = 1.0/count;
+
+	throw "find first";
 	if(percents){
 		percent = percents[0];
 	}
@@ -5366,12 +5690,21 @@ Code.averageAngleVector3D = function(vectors, percents, count){ // center of vec
 		V3D.cross(cross, total,vector);
 		cross.norm();
 		var angle = V3D.angle(total,vector);
-		sumPercent += percent;
-		var weight = (percent/sumPercent);
-		angle *= weight;
+
+		throw("ratio = this_percent / (done_already_percent + this_percent)")
+		
+		var ratio = percent/(percent+sumPercent);
+		angle *= ratio;
 		total.rotate(cross,angle);
 		total.norm();
+
+		sumPercent += percent;
+
 	}
+	throw "visualize results";
+
+
+	throw "this might need sorting [initially or at each iteration?)";
 	return total;
 }
 Code.averageAngleVector3DSameDirection = function(vectors, percents, count){
@@ -5831,7 +6164,10 @@ Code.exponentialDistributionPercentForValue = function(min,lambda,value){
 };
 
 
-Code.averageAngles = function(angles, percents){
+Code.averageAngles = function(angles, percents){ // this is adding the x & y components of the vectors
+	// techically the 'circular mean'
+	console.log("this is only good for small angles, and a quick approx");
+	// seems to be an approx, useful for small angle differences only
 	var i, count = angles.length;
 	var sumSin = 0;
 	var sumCos = 0;
@@ -5846,6 +6182,7 @@ Code.averageAngles = function(angles, percents){
 	}
 	return Math.atan2(sumSin,sumCos);
 }
+
 Code.maxTriAngle = function(A,B,C){
 	var ab = new V3D();
 	var bc = new V3D();

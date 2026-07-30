@@ -1,0 +1,67 @@
+{
+  "en_US-richie-medium": {
+    "key": "en_US-richie-medium",
+    "name": "ryan",
+    "language": {
+      "code": "en_US",
+      "family": "en",
+      "region": "US",
+      "name_native": "English",
+      "name_english": "English",
+      "country_english": "United States"
+    },
+    "quality": "medium",
+    "num_speakers": 1,
+    "speaker_id_map": {},
+    "files": {
+      "test.onnx": {
+        "size_bytes": 63201294,
+        "md5_digest": "8f06d3aff8ded5a7f13f907e6bec32ac"
+      },
+      "test.onnx.json": {
+        "size_bytes": 4883,
+        "md5_digest": "f173a2b5202b3e4128ccc3ed8195306c"
+      },
+      "en/en_US/ryan/medium/MODEL_CARD": {
+        "size_bytes": 306,
+        "md5_digest": "79d9200481a9dcabfa1803cb9e31c28a"
+      }
+    },
+    "aliases": [
+      "en-us-richie-medium"
+    ]
+  },
+
+  "zh_CN-huayan-x_low": {
+    "key": "zh_CN-huayan-x_low",
+    "name": "huayan",
+    "language": {
+      "code": "zh_CN",
+      "family": "zh",
+      "region": "CN",
+      "name_native": "简体中文",
+      "name_english": "Chinese",
+      "country_english": "China"
+    },
+    "quality": "x_low",
+    "num_speakers": 1,
+    "speaker_id_map": {},
+    "files": {
+      "zh/zh_CN/huayan/x_low/zh_CN-huayan-x_low.onnx": {
+        "size_bytes": 20628813,
+        "md5_digest": "2b96570db6becd09814a608c8d14a64f"
+      },
+      "zh/zh_CN/huayan/x_low/zh_CN-huayan-x_low.onnx.json": {
+        "size_bytes": 4164,
+        "md5_digest": "39efce50e05f04893ae656f9008698f7"
+      },
+      "zh/zh_CN/huayan/x_low/MODEL_CARD": {
+        "size_bytes": 237,
+        "md5_digest": "715587a977945498c5741b74eb81a1fd"
+      }
+    },
+    "aliases": [
+      "zh-cn-huayan-x-low"
+    ]
+  }
+}

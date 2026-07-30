@@ -4,8 +4,10 @@
 - N views in approximate location/oriention to each other
 	- order of 0-10 degrees rotational error [X,Y,Z]
 	- order of 0-10% baseline distance translational error
+	- IE: CLOSE
 
 - goal: align all views / view-pairs so the 3D points align (minimize bluring)
+	- IE: approach: ~0 distance and ~0 rotation error
 
 
 ## error metrics:
@@ -36,7 +38,9 @@
 	- this is actual a movement of a view PAIR
 
 
-
+### global view pair repeated iteration
+	start with single pair, add new view (via pairs) at a time, update expected start transform based on old relative & new updated abs.
+	after all views are added in re-iterate with same or different starting view (best coverage view will remain best starting point, remains first)
 
 
 - there might be problems of local minimums that stop the search -> not necessarily a path from current guess to optimum guess
@@ -139,6 +143,87 @@ QUESTIONS:
 	- what error should be minimized over?
 		- average surface distance error?
 		- 
+
+### SURFACE ERROR METRICS:
+
+	#### point-to-point 3D distance
+		- each pair of view extrinsic matrix has an estimated 3D point
+		- for 3D points with multiple pair overlaps (ie a track length > 2, eg: AB - BC)
+		- this can be eror = 
+			3D distance
+			sqrt(3D distance)
+			(3D distance)^2
+
+		=> need exact correspondences in 3D points & overlap
+
+	#### closest point approximation
+		- closest point might not be related to the actual surface poitn
+		=> points need to be correleated using image 2D space => 3D space is less relaiable?
+
+	#### averagte of poitns error
+		- get a set of N points in AB & closest set of points in BC
+			- average point distance ?
+
+	#### local surface closest points 
+		- for a view pair w/ extrinsic matrixes, the local area around a point (eg 5 neightbors) can be approximated with a surface (eg plane)
+			- estimate a surface for point in AB
+				- project point in AB to surface
+			- find closest point in BC from this surface point
+			- again estimate a surface in BC
+			- error:
+				- distance between projected surface point in AB & surface in BC
+				(d, d^2, d^.5)
+		=> lots of calculations
+		=> using several points might help with averaging
+
+	### local surface normal
+		- each view pair can estimate a surface - plane = point & normal
+			- error:
+				angle between surface normals
+
+
+
+
+	### 2D reprojection error
+		- iteritively update camera matrix based on 3D to 2D points
+			- align cameras HOW?
+
+
+
+
+##### how to find nearest point
+	=> 2d point matches 
+
+	- can surface orientations alone be used to align?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Updating the camera matrices vs updating the 3D point matrices
+
+- Cameras A & B stay put, only C changes camera matrix
+	- 6 DoF update
+- A-B geometry stay put, move A-C geometry around
+	- 6 DoF update
+
+
+
+
+
+
+
+
+
 
 
 

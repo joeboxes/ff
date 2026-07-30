@@ -199,7 +199,9 @@ Matrix3D.prototype.fromQuaternion = function(v){
 }
 Matrix3D.prototype.rotateQuaternion = function(v){
 	var mat = Matrix3D.temp.fromQuaternion(v);
-	this.postMult(mat); // pre?
+// postMult
+	// console.log(this);
+	this.postmult(mat); // pre?
 	return this;
 }
 Matrix3D.prototype.rotateVector = function(v,t){ // vector, theta
@@ -224,7 +226,7 @@ Matrix3D.prototype.translationToVector = function(v){
 }
 Matrix3D.prototype.rotationToAxis = function(){ // direction + rotation required to ?
 	var angle = Math.acos( (this.a+this.f+this.k-1.0)*0.5 );
-console.log(angle)
+//console.log(angle)
 	var xNum = this.j - this.g;
 	var yNum = this.c - this.i;
 	var zNum = this.e - this.b;
@@ -236,6 +238,32 @@ console.log(angle)
 	var y = yNum/den;
 	var z = zNum/den;
 	return new V4D(x,y,z, angle);
+}
+Matrix3D.prototype.origin = function(){
+	var o = new V3D(0,0,0);
+	this.multV3DtoV3D(o,o);
+	return o;
+}
+Matrix3D.prototype.dirX = function(){
+	var o = new V3D(0,0,0);
+	var x = new V3D(1,0,0);
+	this.multV3DtoV3D(o,o);
+	this.multV3DtoV3D(x,x);
+	return V3D.sub(x,o).norm();
+}
+Matrix3D.prototype.dirY = function(){
+	var o = new V3D(0,0,0);
+	var x = new V3D(0,1,0);
+	this.multV3DtoV3D(o,o);
+	this.multV3DtoV3D(x,x);
+	return V3D.sub(x,o).norm();
+}
+Matrix3D.prototype.dirZ = function(){
+	var o = new V3D(0,0,0);
+	var x = new V3D(0,0,1);
+	this.multV3DtoV3D(o,o);
+	this.multV3DtoV3D(x,x);
+	return V3D.sub(x,o).norm();
 }
 
 Matrix3D.prototype.rotateX = function(tX){

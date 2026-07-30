@@ -431,12 +431,47 @@ sequentiallyOptimizeViews
 var modeModelReconstruction = true;
 
 
+
+
+- after finding closest approximated transform: should additional step be taken to find best guess at actual world location?
+	- pointA + pointB
+		=> eg: median locaiton between the 2
+	=> or is this something that should be taken care of later steps (eg the tessilation)
+
+NEXT TASK:
+	- get views aligning sequentially
+	- test on real pairwise dataset
+	- test on 3D synthetic views using ESTIMATED SURFACE-SURFACE distance error (after point-point is run -- should be a finer estimation)
+	- test on 3D synthetic views (tx,ty,tz,rx,ry,rz - camera movement + 3D point re-estimation/locating)
+		- 2 sets of views (eg A-B, B-C)
+	- test on 3D points (tx,ty,tz,rx,ry,rz - direct transform)
+	~ test on 2D points (tx,ty,r  - direct transform)
+		=> works for basic points
+		=> problem when trying to do subsets of point pairs during optimization
+			=> try doing smaller sets of max iterations (5-10 steps), and re-getting the point pairs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 NEXT TASK:
 	- start optimizing additional views:
-		- reprojection error
+		x reprojection error
+		- 3D surface distance error 1+ pts [average location
 		- 3D surface distance error 3+ pts [projected surface point]
-		- 3D surface rotation error 3+ pts [normal]
-		- 3D surface distance error 1+ pts [average location]
+		- 3D surface rotation error 3+ pts [normal]]
 		- 3D vector rotation error 2 pts [direction vector]
 
 
@@ -453,27 +488,33 @@ NEXT TASK:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+SURFACE DISTANCE ERROR:
+	A) NEAREST POINT DISTANCE
+		- find closest point in adjacent view - 
+		- error = distance from point in 3D
+			(points will pull toward wrong close location (average-ly minimized when in plane))
+			=> established points do not need to be recalculated
+			=> recalculate P3Ds on each iteration
+	B) AVERAGE POINT PLANE
+		- knn: group of nearby points in 2D [3-5] of adjacent/established view
+		- estimate a flat plane
+		- error
+			A) = point distance from plane
+			B) = back-projected point from 2D onto plane distance
+			=> established points do not need to be recalculated
+			=> recalculate P3Ds on each iteration
+	C) AVERAGE POINT-PAIR VECTOR
+		- 2 nearby points in view
+		- closest nearby points in adj view
+		- error = 3D angle
+		=> recalculate vector on each iteration
+	D) 
+		- use 3 nearest points to create a plane of KNOWN
+		- use 3 nearest points to create a plane of PUTATIVE/ESTIMATE
+		- error
+			A) = back-projected ESTIMATE triangle 3-edge angles
+			B) = back-projected ESTIMATE triangle normal angle
+		=> recalculate projected plane points each iteration
 
 
 
@@ -497,8 +538,6 @@ NEXT TASK:
 
 
 - see what estimating camera linearly from points gets
-
-
 
 
 
